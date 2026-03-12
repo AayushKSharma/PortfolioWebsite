@@ -45,6 +45,8 @@ export default function Contact() {
           I&apos;m always open to interesting conversations and opportunities. Also feel free to reach out about anything you find cool! I love listening to passionate people.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
+
+          
           {links.map(({ label, href, icon: Icon, display }) => (
             <a
               key={label}

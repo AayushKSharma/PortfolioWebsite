@@ -48,7 +48,7 @@ export default function Hero() {
               href="/projects"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 text-sm font-medium hover:opacity-80 transition-opacity"
             >
-              View Projects
+              View Projects & Experience
               <ArrowRight size={16} />
             </Link>
             <a

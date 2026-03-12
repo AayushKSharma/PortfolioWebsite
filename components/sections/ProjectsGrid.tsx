@@ -13,7 +13,7 @@ export default function ProjectsGrid({ projects }: { projects: Project[] }) {
   return (
     <div ref={ref}>
       <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-8">
-        Projects
+        Projects & Experience
       </h2>
       <div className="grid sm:grid-cols-2 gap-4">
         {projects.map((project, i) => (

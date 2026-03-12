@@ -40,7 +40,7 @@ export default async function ProjectPage({
         className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 mb-10 transition-colors"
       >
         <ArrowLeft size={14} />
-        All projects
+        All projects/experience
       </Link>
 
       <header className="mb-8">

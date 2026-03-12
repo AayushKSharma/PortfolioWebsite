@@ -23,12 +23,12 @@ export default function About() {
             I&apos;m a software engineer based in Dallas, Texas. I greatly enjoy discovering and listening to music.  
           </p>
           <p>
-            Currently working on [blank]. Previously at [blank].
-            When I&apos;m not coding, I&apos;m probably [blank].
+            Currently working on <a href="https://www.tamuaotw.com/" target="_blank" rel="noopener noreferrer">Album of the Week</a>. Previously at <a href="https://valiantresidential.com/" target="_blank" rel="noopener noreferrer">Valiant Residential</a>.
+            When I&apos;m not coding, I&apos;m most likely playing Brawl Stars.
           </p>
           <p>
             I care a lot about developer experience, clean APIs, and writing software that
-            other people actually enjoy working with.
+            other people actually enjoy using.
           </p>
         </div>
       </motion.div>

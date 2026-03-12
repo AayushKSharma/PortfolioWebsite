@@ -4,8 +4,8 @@ import ProjectsGrid from "@/components/sections/ProjectsGrid"
 import Skills from "@/components/sections/Skills"
 
 export const metadata: Metadata = {
-  title: "Projects",
-  description: "A selection of projects I've built.",
+  title: "Projects & Experience",
+  description: "A selection of projects I've built and my experience.",
 }
 
 export default async function ProjectsPage() {

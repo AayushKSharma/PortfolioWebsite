@@ -20,10 +20,10 @@ export default function About() {
         </h2>
         <div className="max-w-2xl space-y-4 text-neutral-600 dark:text-neutral-400 leading-relaxed">
           <p>
-            I&apos;m a software engineer based in Dallas, Texas. I greatly enjoy discovering and listening to music.  
+            I&apos;m a software engineer based in Dallas, Texas. I greatly enjoy discovering and listening to music (see my work for <a href="/projects/aotw" style={{ textDecoration: "underline" }}>Album of the Week</a> or my <a href="https://open.spotify.com/user/meowmaster6400?si=2d52bb77274947b4" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Spotify</a>).  
           </p>
           <p>
-            Currently working on <a href="https://www.tamuaotw.com/" target="_blank" rel="noopener noreferrer">Album of the Week</a>. Previously at <a href="https://valiantresidential.com/" target="_blank" rel="noopener noreferrer">Valiant Residential</a>.
+            Currently working on <a href="/projects/aotw" style={{ textDecoration: "underline" }}>Album of the Week</a>. Previously at <a href="https://valiantresidential.com/" target="_blank" rel="noopener noreferrer"  style={{ textDecoration: "underline" }}>Valiant Residential</a>.
             When I&apos;m not coding, I&apos;m most likely playing Brawl Stars.
           </p>
           <p>

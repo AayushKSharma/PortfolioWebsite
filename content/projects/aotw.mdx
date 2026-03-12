@@ -1,0 +1,62 @@
+---
+title: "Album of the Week: Automation Chair"
+description: "Dec 2023 - May 2026, Lead Dev/Product Eng for 200+ member university club"
+tech: ["React",  "Express.js", "PostgreSQL", "TypeScript", "REST", "GitHub Actions", "Project Management"]
+githubUrl: ""
+url: "https://www.tamuaotw.com/"
+featured: true
+---
+
+# Disclaimer
+
+This is a somewhat involved breakdown of my 2 and a 1/2 year technical project as the Automation chair for Album of the Week. We will get into the weeds a bit about the project in various ways so for a lighter summary, [refer to my resume](/files/Aayush-Kumar-Sharma_Resume.pdf)
+
+---
+
+# Overview
+
+__Album of the Week__ (_AotW_) is a university affiliated club at Texas A&M University in College Station. We discuss a musical album every week and as of Fall 2025 we have _200+_ members and roughly _50 DAU_. In short we have 2 external services that run in tandem: 
+- the club website (React.js, Express.js, Google OAuth, REST) 
+- and it's discord bot (Javascript, Spotify API, Google Drive API)
+
+as well as 2 behind the scenes ones: 
+- our host of digital ocean serverless functions (Typescript, Spotify API) 
+- and a PostgreSQL database
+
+The service I developed for it ties deeply with the function of the club, so an explaination of it is in order. 
+
+### Background
+
+Every week, we have a genre that we aim to discuss (this is on a weekly rotation of different genres) and our members can each nominate an album that they want to talk about on Monday night. Then, after a day has passed every member can vote on the albums they want to talk about, and then finally the next day between the most voted 5-6 albums we randomly decide (weighted to the number of votes each album got) which album to discuss for the week.
+
+---
+
+# Architecture / Technical Breakdown
+
+### tamuaotw.com
+
+This [website](https://www.tamuaotw.com/) is a React.js & javascript frontend with a Express.js & Node.js back end. In the front end we handle basic club info (live event updates, about me, etc.) and mainly the __album selection process__ (explained above in the Background section). <br />
+
+
+<span style={{ fontWeight: 600 }}>handling album selection:</span>
+- __Nomination__ for the album interfaces with Spotify's developer API so that users can either search their album on the website or paste a Spotify link directly nominate their album. They can then choose a favorite song (auto populated from Spotify), describe the album/their case for it to be voted, etc. all of this interfaces with the database to be stored.
+- __Voting__ then occurs, users can come to the site then select the allowable amount of albums to be voted (varys based on number of albums nominated) while browsing through them all: looking at descriptions written by the nominators, the listed genres, or while listening to the auto generated Spotify playlist that the Discord bot handles (more on that later).
+- Then finally, we have the __Album Release__. Internally, PSQL logic ran our digital ocean service decides the album and then reflects that to our members. On the front end, we have a countdown to the release of the album for the week; the top 5-6 albums have a weighted random chance between them to be choosen so we decided to style it like a decision wheel (à la pickerwheel or wheelofnames)! 
+
+### Discord bot
+
+The discord server for AotW is our main form of communication. The bot handles timed announcements in the discord currently; it used to, however, handle almost all of our business logic (I plan to write a blog post soon about the ups and downs of that decision). The bot is written in javascript and interfaces heavily with Spotify api and Google drive api, and is directed by our digital ocean business logic now. 
+
+### Digital Ocean serverless functions
+
+DigitalOcean serverless functions are a cost effective way to crystalize most of the business logic in the cloud and make sure that it runs properly (hosting for the discord bot has historically had many issues). In addition to having a better uptime record than the discord bot, serverless functions have quicker deploy times/improved CD setup, more accomodating structure for future features, and of coruse a lack of interdependence on the discord bot. <br />
+
+### PostgreSQL database
+
+The data
+
+---
+
+# Project Management / Soft Skill Growth
+
+Another major aspect of my time leading AotW 

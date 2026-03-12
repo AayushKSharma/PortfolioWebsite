@@ -1,0 +1,25 @@
+---
+title: "Portfolio Website"
+description: "Personal portfolio built with Next.js 15, TypeScript, Tailwind CSS v4, and Framer Motion."
+tech: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"]
+githubUrl: "https://github.com/yourusername/portfolio"
+liveUrl: "https://yourportfolio.vercel.app"
+featured: true
+---
+
+## Overview
+
+A modern personal portfolio and blog built from scratch with Next.js App Router. Designed for performance and developer experience — every page is statically generated at build time.
+
+## Features
+
+- **MDX blog** — write posts in Markdown with full React component support
+- **Dark mode** — class-based theming via `next-themes`, zero flash on load
+- **Smooth animations** — scroll-triggered Framer Motion transitions throughout
+- **Static generation** — all pages pre-rendered, minimal client JavaScript
+
+## Technical decisions
+
+The App Router's server components are used wherever possible, keeping client JavaScript small. `'use client'` is added only where needed (Navbar, ThemeToggle, animation wrappers).
+
+Tailwind CSS v4's new `@custom-variant` directive handles the dark mode selector, replacing the old `darkMode: 'class'` config option.

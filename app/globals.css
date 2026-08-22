@@ -42,12 +42,24 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.wb-link {
+  -webkit-tap-highlight-color: transparent;
+  background: none;
+  transition: text-shadow .16s ease, filter .16s ease;
+}
+
 .wb-link:hover,
 .wb-link.wb-hover,
 .wb-link:focus-visible {
-  background: rgba(255, 231, 122, 0.5);
-  border-radius: 8px 6px 9px 7px;
+  background: none !important;
   outline: none;
+  text-shadow: 0 0 3px currentColor;
+}
+
+.wb-link:hover svg,
+.wb-link.wb-hover svg,
+.wb-link:focus-visible svg {
+  filter: drop-shadow(0 0 2px currentColor);
 }
 
 .wb-reset:hover {
@@ -57,4 +69,8 @@ body {
 
 html.dark .wb-reset:hover {
   color: #f1ece0;
+}
+
+@media (max-width: 700px) {
+  html { background-color: transparent; }
 }

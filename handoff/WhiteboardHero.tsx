@@ -476,7 +476,7 @@ export default function WhiteboardHero() {
   const navLink: React.CSSProperties = {
     display: "inline-block",
     fontFamily: "Excalifont, Virgil, cursive",
-    transition: "filter .16s ease",
+    transition: "background .16s ease",
     padding: "0 6px",
     margin: "0 -6px",
     whiteSpace: "nowrap",
@@ -520,17 +520,6 @@ export default function WhiteboardHero() {
       margin: "0 auto",
       position: "relative",
     }}>
-      <style>{`
-        a.wb-link { background: none !important; }
-        a.wb-link:hover, a.wb-link.wb-hover, a.wb-link:focus-visible {
-          background: none !important;
-          outline: none;
-          text-shadow: 0 0 3px currentColor;
-        }
-        a.wb-link:hover svg, a.wb-link.wb-hover svg, a.wb-link:focus-visible svg {
-          filter: drop-shadow(0 0 2px currentColor);
-        }
-      `}</style>
       <div style={{ position: "relative", background: "transparent", padding: narrow ? "24px 14px 0" : "52px 60px 0" }}>
         {/* wall switch — invisible hit box, visible plate centered inside it */}
         <div style={{ position: "absolute", top: narrow ? 26 : 210, right: narrow ? 8 : 4, zIndex: 6 }}>

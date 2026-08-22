@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react"
 
 /**
  * Whiteboard hero — replaces Navbar + Hero on the landing page.
@@ -51,6 +51,42 @@ function subscribeHtmlClass(onChange: () => void) {
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
   return () => observer.disconnect()
 }
+
+function punchErase(
+  m: HTMLCanvasElement,
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+) {
+  const x = m.getContext("2d")!
+  const s = m.width / CANVAS_W
+  x.globalCompositeOperation = "destination-out"
+  x.strokeStyle = "#000"
+  x.lineCap = "round"
+  x.lineJoin = "round"
+  x.globalAlpha = 0.16
+  x.lineWidth = 40 * s
+  x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
+  x.globalAlpha = 0.55
+  x.lineWidth = 24 * s
+  x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
+  x.globalCompositeOperation = "source-over"
+  x.globalAlpha = 1
+  x.strokeStyle = "rgba(255,255,255,.055)"
+  x.lineWidth = 22 * s
+  x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
+  x.strokeStyle = "rgba(255,255,255,.03)"
+  x.lineWidth = 38 * s
+  x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
+}
+
+const GHOST_STROKES: [number, number, number, number][][] = [
+  // =3
+  [[0.02, 0.1, 1.05, 0.72], [0.0, 0.85, 0.92, 0.18], [0.4, -0.1, 1.0, 0.95]],
+  // TODO: make website
+  [[-0.06, 0.15, 1.08, 0.58], [0.08, 0.82, 0.72, 0.08], [0.28, 0.95, 1.04, 0.38], [0.0, 0.4, 0.5, 0.9], [0.55, 0.05, 0.98, 0.7]],
+  // Cool S
+  [[0.05, -0.08, 0.92, 0.5], [0.0, 0.32, 1.05, 0.78], [0.18, 0.52, 0.95, 1.08], [0.62, 0.05, 0.08, 0.88]],
+]
 
 function useIsDark() {
   return useSyncExternalStore(
@@ -109,33 +145,39 @@ export default function WhiteboardHero() {
   }, [])
 
   const eraseMask = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-    const m = mask()
-    const x = m.getContext("2d")!
-    const s = m.width / CANVAS_W
-    x.globalCompositeOperation = "destination-out"
-    x.strokeStyle = "#000"
-    x.lineCap = "round"
-    x.lineJoin = "round"
-    x.globalAlpha = 0.16
-    x.lineWidth = 40 * s
-    x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
-    x.globalAlpha = 0.55
-    x.lineWidth = 24 * s
-    x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
-    // add a little alpha back so ink never disappears entirely — caked residue
-    x.globalCompositeOperation = "source-over"
-    x.globalAlpha = 1
-    x.strokeStyle = "rgba(255,255,255,.055)"
-    x.lineWidth = 22 * s
-    x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
-    x.strokeStyle = "rgba(255,255,255,.03)"
-    x.lineWidth = 38 * s
-    x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
+    punchErase(mask(), a, b)
     if (!maskPending.current) {
       maskPending.current = true
       requestAnimationFrame(() => { maskPending.current = false; flushMask() })
     }
   }
+
+  const smudgeGhosts = useCallback(() => {
+    const inkEl = inkRef.current
+    const cv = canvasRef.current
+    if (!inkEl || !cv) return
+    const board = cv.getBoundingClientRect()
+    const sx = cv.width / board.width
+    const sy = cv.height / board.height
+    const m = mask()
+    inkEl.querySelectorAll("[data-wb-ghost]").forEach((el, i) => {
+      const r = el.getBoundingClientRect()
+      const x = (r.left - board.left) * sx
+      const y = (r.top - board.top) * sy
+      const w = r.width * sx
+      const h = r.height * sy
+      const padX = 14 * sx
+      const padY = 12 * sy
+      for (const [ax, ay, bx, by] of GHOST_STROKES[i] ?? GHOST_STROKES[0]) {
+        punchErase(
+          m,
+          { x: x - padX + ax * (w + padX * 2), y: y - padY + ay * (h + padY * 2) },
+          { x: x - padX + bx * (w + padX * 2), y: y - padY + by * (h + padY * 2) },
+        )
+      }
+    })
+    flushMask()
+  }, [mask, flushMask])
 
   /* -------------------------------------------------------------- canvas */
 
@@ -292,6 +334,10 @@ export default function WhiteboardHero() {
     endStroke()
   }
 
+  useLayoutEffect(() => {
+    smudgeGhosts()
+  }, [smudgeGhosts])
+
   /* Replay strokes on the opposite palette when the lights flip. */
   useEffect(() => {
     const cv = canvasRef.current
@@ -374,8 +420,7 @@ export default function WhiteboardHero() {
     x.globalCompositeOperation = "source-over"
     x.fillStyle = "#fff"
     x.fillRect(0, 0, m.width, m.height)
-    const el = inkRef.current
-    if (el) { el.style.webkitMaskImage = "none"; el.style.maskImage = "none" }
+    smudgeGhosts()
   }
 
   /* --------------------------------------------------------------- chrome */
@@ -456,7 +501,7 @@ export default function WhiteboardHero() {
               <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-start" }}>
                 <div style={{ position: "relative", fontSize: 84, lineHeight: 1, transform: "rotate(-1.6deg)" }}>
                   yush<span style={{ color: ink(INK.red) }}>.</span>
-                  <span style={{
+                  <span data-wb-ghost style={{
                     position: "absolute", left: "104%", top: "-0.28em",
                     fontSize: 30, lineHeight: 1, color: ink(INK.red),
                     transform: "rotate(-12deg)",
@@ -483,7 +528,7 @@ export default function WhiteboardHero() {
                 <div style={{ display: "flex", gap: 36, flexWrap: "wrap", marginTop: 8 }}>
                   <a className="wb-link" href="/files/Aayush-Kumar-Sharma_Resume.pdf" target="_blank" rel="noopener noreferrer" style={{ ...navLink, fontSize: 27, color: ink(INK.black), transform: "rotate(.8deg)" }}>résumé.pdf</a>
                   <a className="wb-link" href="https://github.com/AayushKSharma" target="_blank" rel="noopener noreferrer" style={{ ...navLink, fontSize: 27, color: ink(INK.black), transform: "rotate(-1.4deg)" }}>github</a>
-                  <a className="wb-link" href="mailto:aayushksharma1@gmail.com" style={{ ...navLink, fontSize: 27, color: ink(INK.black), transform: "rotate(1deg)" }}>email</a>
+                  <a className="wb-link" href="mailto:aayushksharma1@gmail.com" style={{ ...navLink, fontSize: 27, color: ink(INK.black), transform: "rotate(.8deg)" }}>reach out!</a>
                 </div>
                 <svg viewBox="0 0 300 26" preserveAspectRatio="none" style={{ display: "block", width: 296, height: 22, overflow: "visible" }}>
                   <path d="M4 12 C 90 26, 190 2, 292 16" fill="none" stroke={ink(INK.red)} strokeWidth="3" strokeLinecap="round" />
@@ -506,10 +551,10 @@ export default function WhiteboardHero() {
                 gridColumn: "1 / -1", display: "flex", justifyContent: "space-between",
                 alignItems: "flex-end", width: "100%", paddingRight: 36,
               }}>
-                <div style={{ fontSize: 24, color: ink(INK.black), transform: "rotate(-3deg)" }}>
-                  standup @ 10 — bring coffee
+                <div data-wb-ghost style={{ fontSize: 24, color: ink(INK.black), transform: "rotate(-3deg)" }}>
+                  TODO: make website
                 </div>
-                <div style={{ transform: "rotate(5deg)", marginBottom: 4 }}>
+                <div data-wb-ghost style={{ transform: "rotate(5deg)", marginBottom: 4 }}>
                   <CoolS color={ink(INK.black)} />
                 </div>
               </div>
@@ -597,9 +642,18 @@ function CoolS({ color }: { color: string }) {
       style={{ display: "block", overflow: "visible" }}
     >
       <g fill="none" stroke={color} strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M35 6 L14 26 L14 50 L56 74 L56 98 L35 118 L14 98 L14 74 L56 50 L56 26 Z" />
+        <polyline points="14,26 35,6 56,26" />
+        <line x1="14" y1="26" x2="14" y2="50" />
         <line x1="35" y1="26" x2="35" y2="50" />
+        <line x1="56" y1="26" x2="56" y2="50" />
+        <line x1="14" y1="50" x2="35" y2="74" />
+        <line x1="35" y1="50" x2="56" y2="74" />
+        <line x1="56" y1="50" x2="42" y2="58" />
+        <line x1="28" y1="66" x2="14" y2="74" />
+        <line x1="14" y1="74" x2="14" y2="98" />
         <line x1="35" y1="74" x2="35" y2="98" />
+        <line x1="56" y1="74" x2="56" y2="98" />
+        <polyline points="14,98 35,118 56,98" />
       </g>
     </svg>
   )

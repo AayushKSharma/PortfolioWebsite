@@ -16,6 +16,8 @@ export default function Navbar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
+  if (pathname === "/") return null
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md">
       <nav className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">

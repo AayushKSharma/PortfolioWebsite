@@ -3,6 +3,17 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@font-face {
+  font-family: "Excalifont";
+  src: url("/fonts/Excalifont/Excalifont-Regular-349fac6ca4700ffec595a7150a0d1e1d.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Virgil";
+  src: url("/fonts/Virgil/Virgil-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -22,11 +33,28 @@
 
 html {
   scroll-behavior: smooth;
+  background-color: var(--background);
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.wb-link:hover,
+.wb-link.wb-hover,
+.wb-link:focus-visible {
+  background: rgba(255, 231, 122, 0.5);
+  border-radius: 8px 6px 9px 7px;
+  outline: none;
+}
+
+.wb-reset:hover {
+  color: #20242a;
+  transform: rotate(-40deg);
+}
+
+html.dark .wb-reset:hover {
+  color: #f1ece0;
 }

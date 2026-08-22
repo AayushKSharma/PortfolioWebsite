@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { motion } from "framer-motion"
 import { useInView } from "framer-motion"
 import { useRef } from "react"
@@ -15,15 +16,15 @@ export default function About() {
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-8">
+        <h2 className="text-2xl font-bold text-[#2a2117] dark:text-[#ece7da] mb-8">
           About
         </h2>
-        <div className="max-w-2xl space-y-4 text-neutral-600 dark:text-neutral-400 leading-relaxed">
+        <div className="max-w-2xl space-y-4 text-[#3f3428] dark:text-[#b9b2a3] leading-relaxed">
           <p>
-            I&apos;m a software engineer based in Dallas, Texas. I greatly enjoy discovering and listening to music (see my work for <a href="/projects/aotw" style={{ textDecoration: "underline" }}>Album of the Week</a> or my <a href="https://open.spotify.com/user/meowmaster6400?si=2d52bb77274947b4" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Spotify</a>).  
+            I&apos;m a software engineer based in Dallas, Texas. I greatly enjoy discovering and listening to music (see my work for <Link href="/projects/aotw" style={{ textDecoration: "underline" }}>Album of the Week</Link> or my <a href="https://open.spotify.com/user/meowmaster6400?si=2d52bb77274947b4" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Spotify</a>).  
           </p>
           <p>
-            Currently working on <a href="/projects/aotw" style={{ textDecoration: "underline" }}>Album of the Week</a>. Previously at <a href="https://valiantresidential.com/" target="_blank" rel="noopener noreferrer"  style={{ textDecoration: "underline" }}>Valiant Residential</a>.
+            Currently working on <Link href="/projects/aotw" style={{ textDecoration: "underline" }}>Album of the Week</Link>. Previously at <a href="https://valiantresidential.com/" target="_blank" rel="noopener noreferrer"  style={{ textDecoration: "underline" }}>Valiant Residential</a>.
             When I&apos;m not coding, I&apos;m most likely playing Brawl Stars.
           </p>
           <p>

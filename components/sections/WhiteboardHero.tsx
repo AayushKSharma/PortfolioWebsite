@@ -52,36 +52,76 @@ function subscribeHtmlClass(onChange: () => void) {
   return () => observer.disconnect()
 }
 
+function stampErase(
+  ctx: CanvasRenderingContext2D,
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  size: number,
+) {
+  ctx.save()
+  ctx.lineCap = "round"
+  ctx.lineJoin = "round"
+  ctx.globalCompositeOperation = "destination-out"
+  ctx.strokeStyle = "#000"
+  ctx.globalAlpha = 0.16
+  ctx.lineWidth = size
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke()
+  ctx.globalAlpha = 0.55
+  ctx.lineWidth = size * 0.6
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke()
+  ctx.globalCompositeOperation = "source-over"
+  ctx.globalAlpha = 1
+  ctx.strokeStyle = "rgba(255,255,255,.055)"
+  ctx.lineWidth = size * 0.55
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke()
+  ctx.strokeStyle = "rgba(255,255,255,.03)"
+  ctx.lineWidth = size * 0.95
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke()
+  ctx.restore()
+}
+
 function punchErase(
   m: HTMLCanvasElement,
   a: { x: number; y: number },
   b: { x: number; y: number },
+  size = 40,
 ) {
-  const x = m.getContext("2d")!
-  const s = m.width / CANVAS_W
-  x.globalCompositeOperation = "destination-out"
-  x.strokeStyle = "#000"
-  x.lineCap = "round"
-  x.lineJoin = "round"
-  x.globalAlpha = 0.16
-  x.lineWidth = 40 * s
-  x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
-  x.globalAlpha = 0.55
-  x.lineWidth = 24 * s
-  x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
-  x.globalCompositeOperation = "source-over"
-  x.globalAlpha = 1
-  x.strokeStyle = "rgba(255,255,255,.055)"
-  x.lineWidth = 22 * s
-  x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
-  x.strokeStyle = "rgba(255,255,255,.03)"
-  x.lineWidth = 38 * s
-  x.beginPath(); x.moveTo(a.x * s, a.y * s); x.lineTo(b.x * s, b.y * s); x.stroke()
+  const toMask = m.width / CANVAS_W
+  stampErase(
+    m.getContext("2d")!,
+    { x: a.x * toMask, y: a.y * toMask },
+    { x: b.x * toMask, y: b.y * toMask },
+    size * toMask,
+  )
+}
+
+function smudgeLocal(el: HTMLElement, strokes: [number, number, number, number][]) {
+  const r = el.getBoundingClientRect()
+  const scale = 2
+  const w = Math.max(2, Math.round(r.width * scale))
+  const h = Math.max(2, Math.round(r.height * scale))
+  const c = document.createElement("canvas")
+  c.width = w
+  c.height = h
+  const ctx = c.getContext("2d")!
+  ctx.fillStyle = "#fff"
+  ctx.fillRect(0, 0, w, h)
+  const brush = Math.min(w, h) * 0.28
+  for (const [ax, ay, bx, by] of strokes) {
+    stampErase(ctx, { x: ax * w, y: ay * h }, { x: bx * w, y: by * h }, brush)
+  }
+  const url = `url(${c.toDataURL()})`
+  el.style.webkitMaskImage = url
+  el.style.maskImage = url
+  el.style.webkitMaskSize = "100% 100%"
+  el.style.maskSize = "100% 100%"
+  el.style.webkitMaskRepeat = "no-repeat"
+  el.style.maskRepeat = "no-repeat"
 }
 
 const GHOST_STROKES: [number, number, number, number][][] = [
-  // =3
-  [[0.02, 0.1, 1.05, 0.72], [0.0, 0.85, 0.92, 0.18], [0.4, -0.1, 1.0, 0.95]],
+  // =3 — keep well inside the glyph so the fat mask doesn't nick the title / GH mark
+  [[0.12, 0.28, 0.88, 0.58], [0.18, 0.72, 0.82, 0.32], [0.4, 0.18, 0.78, 0.76]],
   // TODO: make website
   [[-0.06, 0.15, 1.08, 0.58], [0.08, 0.82, 0.72, 0.08], [0.28, 0.95, 1.04, 0.38], [0.0, 0.4, 0.5, 0.9], [0.55, 0.05, 0.98, 0.7]],
   // Cool S
@@ -160,19 +200,27 @@ export default function WhiteboardHero() {
     const sx = cv.width / board.width
     const sy = cv.height / board.height
     const m = mask()
-    inkEl.querySelectorAll("[data-wb-ghost]").forEach((el, i) => {
+    inkEl.querySelectorAll("[data-wb-ghost]").forEach((node, i) => {
+      const el = node as HTMLElement
+      const strokes = GHOST_STROKES[i] ?? GHOST_STROKES[0]
+      if (el.getAttribute("data-wb-ghost") === "tight") {
+        smudgeLocal(el, strokes)
+        return
+      }
       const r = el.getBoundingClientRect()
       const x = (r.left - board.left) * sx
       const y = (r.top - board.top) * sy
       const w = r.width * sx
       const h = r.height * sy
-      const padX = 14 * sx
-      const padY = 12 * sy
-      for (const [ax, ay, bx, by] of GHOST_STROKES[i] ?? GHOST_STROKES[0]) {
+      const padX = 10 * sx
+      const padY = 8 * sy
+      const brush = Math.min(32, Math.max(16, Math.min(w, h) * 0.42))
+      for (const [ax, ay, bx, by] of strokes) {
         punchErase(
           m,
           { x: x - padX + ax * (w + padX * 2), y: y - padY + ay * (h + padY * 2) },
           { x: x - padX + bx * (w + padX * 2), y: y - padY + by * (h + padY * 2) },
+          brush,
         )
       }
     })
@@ -499,13 +547,24 @@ export default function WhiteboardHero() {
               padding: "48px 60px 44px", alignItems: "start",
             }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 16, alignItems: "flex-start" }}>
-                <div style={{ position: "relative", fontSize: 84, lineHeight: 1, transform: "rotate(-1.6deg)" }}>
-                  yush<span style={{ color: ink(INK.red) }}>.</span>
-                  <span data-wb-ghost style={{
-                    position: "absolute", left: "104%", top: "-0.28em",
-                    fontSize: 30, lineHeight: 1, color: ink(INK.red),
-                    transform: "rotate(-12deg)",
-                  }}>=3</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, transform: "rotate(-1.6deg)" }}>
+                  <div style={{ position: "relative", fontSize: 84, lineHeight: 1 }}>
+                    yush<span style={{ color: ink(INK.red) }}>.</span>
+                    <span data-wb-ghost="tight" style={{
+                      position: "absolute", left: "78%", top: "-48px",
+                      fontSize: 30, lineHeight: 1, color: ink(INK.red),
+                      transform: "rotate(-12deg)",
+                      pointerEvents: "none", display: "block",
+                    }}>=3</span>
+                  </div>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 12, pointerEvents: "auto", marginTop: 10 }}>
+                    <a className="wb-link" href="https://github.com/AayushKSharma" target="_blank" rel="noopener noreferrer" aria-label="GitHub" style={{ ...navLink, color: ink(INK.black), transform: "rotate(-1.4deg)", display: "inline-flex", alignItems: "center", lineHeight: 1 }}>
+                      <SketchGithub color={ink(INK.black)} />
+                    </a>
+                    <a className="wb-link" href="https://www.linkedin.com/in/aayush-k-sharma" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" style={{ ...navLink, color: ink(INK.blue), transform: "rotate(1.1deg)", display: "inline-flex", alignItems: "center", lineHeight: 1 }}>
+                      <SketchLinkedIn color={ink(INK.blue)} />
+                    </a>
+                  </span>
                 </div>
                 <div style={{ fontSize: 25, color: chalk ? "#cfcabd" : "#3d4450", maxWidth: 420, lineHeight: 1.45, transform: "rotate(-.6deg)" }}>
                   music-loving software engineer<br />who loves building on the web
@@ -527,9 +586,6 @@ export default function WhiteboardHero() {
                 </div>
                 <div style={{ display: "flex", gap: 36, flexWrap: "wrap", marginTop: 8 }}>
                   <a className="wb-link" href="/files/Aayush-Kumar-Sharma_Resume.pdf" target="_blank" rel="noopener noreferrer" style={{ ...navLink, fontSize: 27, color: ink(INK.black), transform: "rotate(.8deg)" }}>résumé.pdf</a>
-                  <a className="wb-link" href="https://github.com/AayushKSharma" target="_blank" rel="noopener noreferrer" aria-label="GitHub" style={{ ...navLink, color: ink(INK.black), transform: "rotate(-1.4deg)", display: "inline-flex", alignItems: "center", lineHeight: 1 }}>
-                    <SketchGithub color={ink(INK.black)} />
-                  </a>
                   <a className="wb-link" href="mailto:aayushksharma1@gmail.com" style={{ ...navLink, fontSize: 27, color: ink(INK.black), transform: "rotate(.8deg)" }}>reach out!</a>
                 </div>
                 <svg viewBox="0 0 300 26" preserveAspectRatio="none" style={{ display: "block", width: 296, height: 22, overflow: "visible" }}>
@@ -644,6 +700,20 @@ function SketchGithub({ color }: { color: string }) {
       style={{ display: "block", overflow: "visible", flexShrink: 0 }}
     >
       <path fill={color} fillRule="evenodd" d="M 183.500 8.672 C 168.276 9.218, 152.840 11.166, 144.438 13.602 C 133.397 16.803, 99.272 30.743, 88.652 36.391 C 70.113 46.250, 41.258 71.847, 31.038 87.500 C 24.587 97.379, 16.902 113.043, 13.619 123 C 10.055 133.812, 8.665 148.351, 9.281 168.395 C 9.744 183.491, 10.167 186.788, 12.881 196.464 C 18.672 217.111, 27.230 231.424, 42.214 245.520 C 54.540 257.115, 66.907 264.818, 78.925 268.386 C 85.354 270.294, 114.997 272.598, 120.307 271.602 C 126.603 270.421, 127.322 268.223, 126.804 251.734 C 126.166 231.420, 125.761 230.812, 112 229.495 C 106.815 228.998, 103.476 227.813, 95.500 223.635 C 90 220.754, 83.412 217.614, 80.860 216.658 C 74.215 214.167, 67.405 209.392, 65.039 205.564 C 62.811 201.959, 62.395 198.492, 64.065 197.460 C 66.289 196.085, 71.943 198.198, 76.296 202.029 C 78.784 204.219, 84.122 207.386, 88.160 209.067 C 110.213 218.249, 110.199 218.245, 114.917 217.598 C 117.411 217.256, 120.138 216.291, 120.976 215.454 C 122.749 213.683, 122.893 206.598, 121.568 186.424 C 120.723 173.553, 120.745 173.315, 123.001 171.214 C 124.334 169.971, 127.218 168.839, 129.896 168.507 C 145.652 166.549, 150.275 164.528, 150.797 159.366 C 151.185 155.539, 146.446 148.914, 141.715 146.669 C 139.781 145.751, 135.985 145, 133.280 145 C 126.618 145, 119.692 142.800, 112.500 138.400 C 109.200 136.381, 105.527 134.200, 104.337 133.554 C 98.101 130.163, 90.671 123.284, 88.395 118.793 C 85.087 112.264, 83.673 104.521, 85.036 100.392 C 86.252 96.707, 88.533 95.431, 101 91.464 C 105.675 89.976, 110.527 87.821, 111.781 86.676 C 113.036 85.530, 114.773 82.097, 115.642 79.046 C 116.511 75.996, 117.622 73.073, 118.111 72.550 C 118.600 72.027, 119 70.340, 119 68.800 C 119 65.491, 120.330 65.294, 124.696 67.956 C 128.428 70.232, 130.546 73.262, 131.454 77.624 C 131.811 79.343, 133.117 81.701, 134.355 82.864 C 136.527 84.904, 136.869 84.930, 144.053 83.595 C 148.149 82.834, 161.175 81.910, 173 81.541 C 184.825 81.172, 196.129 80.448, 198.119 79.932 C 203.225 78.608, 206.640 75.607, 210.179 69.336 C 213.107 64.148, 213.324 63.984, 215.110 65.599 C 218.042 68.253, 222.730 76.176, 223.476 79.738 C 224.151 82.962, 226.234 85.085, 231.652 88.069 C 233.218 88.932, 234.991 90.732, 235.590 92.069 C 239.952 101.795, 244.643 123.648, 243.664 129.681 C 242.766 135.219, 239.836 140.080, 235.778 142.766 C 232.113 145.191, 230.803 145.403, 214.803 146.151 C 205.417 146.590, 196.964 147.194, 196.020 147.494 C 190.001 149.404, 191.361 164.160, 197.684 165.546 C 205.468 167.251, 208.075 169.514, 209.446 175.753 C 209.835 177.526, 210.569 179.234, 211.077 179.548 C 211.585 179.861, 212.001 181.329, 212.003 182.809 C 212.006 185.620, 218.169 216.064, 219.898 221.809 C 220.446 223.629, 221.186 232.404, 221.543 241.309 C 221.900 250.214, 222.609 259.161, 223.119 261.192 C 223.965 264.564, 224.413 264.939, 228.273 265.510 C 233.849 266.335, 244.862 264.499, 251.872 261.576 C 254.967 260.285, 258.996 258.910, 260.825 258.519 C 262.653 258.128, 266.285 255.939, 268.895 253.654 C 271.506 251.369, 278.417 245.588, 284.253 240.806 C 295.575 231.529, 302.868 223.412, 311.555 210.421 C 317.685 201.252, 330.835 176.413, 332.077 171.655 C 332.530 169.920, 333.808 166.025, 334.918 163 C 337.626 155.614, 337.538 147.334, 334.562 129.767 C 330.878 108.022, 325.839 96.418, 310.992 75.488 C 300.271 60.376, 282.014 43.087, 264 30.989 C 260.425 28.588, 256.249 25.785, 254.720 24.760 C 249.445 21.223, 234.481 14.220, 227.792 12.159 C 219.255 9.527, 200.600 8.059, 183.500 8.672" />
+    </svg>
+  )
+}
+
+function SketchLinkedIn({ color }: { color: string }) {
+  return (
+    <svg
+      viewBox="0 0 203 164"
+      width={42}
+      height={34}
+      aria-hidden
+      style={{ display: "block", overflow: "visible", flexShrink: 0 }}
+    >
+      <path fill={color} fillRule="evenodd" d="M 177 4.733 C 169.261 5.950, 156.191 6.202, 106.500 6.094 C 69.662 6.013, 41.211 5.517, 34.671 4.842 C 28.714 4.227, 20.389 3.984, 16.171 4.302 C 9.174 4.830, 8.253 5.157, 5.689 8.025 L 2.878 11.168 3.547 21.834 C 3.915 27.700, 4.617 39.700, 5.107 48.500 C 5.597 57.300, 6.486 68.100, 7.081 72.500 C 7.677 76.900, 8.553 92.875, 9.028 108 C 9.504 123.125, 10.185 141.923, 10.543 149.772 L 11.193 164.045 93.846 163.608 C 139.306 163.367, 178.975 163.107, 182 163.028 C 185.025 162.950, 188.853 163.171, 190.507 163.521 C 192.716 163.987, 194.117 163.634, 195.782 162.189 L 198.049 160.223 197.526 124.361 C 197.237 104.638, 196.765 72.344, 196.476 52.598 C 195.961 17.487, 195.994 16.654, 197.975 14.809 C 200.880 12.102, 200.599 7.617, 197.365 5.073 C 194.264 2.633, 190.737 2.574, 177 4.733 M 36.038 25.041 C 34.134 26.668, 31.847 28, 30.956 28 C 29.845 28, 28.998 29.481, 28.257 32.720 C 27.313 36.845, 27.419 37.780, 29.099 40.139 C 32.155 44.430, 42.780 46.185, 50 43.590 C 54.386 42.014, 55.966 38.983, 55.985 32.110 C 56.003 25.567, 54.495 24.077, 47.809 24.032 C 45.229 24.014, 42.840 23.550, 42.500 23 C 41.482 21.353, 39.691 21.918, 36.038 25.041 M 46 66 C 45.175 66.533, 41.451 66.976, 37.725 66.985 C 31.360 66.999, 30.891 67.157, 29.964 69.594 C 29.358 71.189, 29.078 88.039, 29.239 113.344 L 29.500 154.500 37.500 154.362 C 48.867 154.165, 56.298 153.041, 58.785 151.141 C 60.732 149.654, 60.959 148.418, 61.203 138 C 61.351 131.675, 60.881 119.750, 60.160 111.500 C 59.439 103.250, 58.742 95.150, 58.611 93.500 C 58.480 91.850, 58.289 85.213, 58.186 78.750 L 58 67 54.559 67 C 52.666 67, 50.840 66.550, 50.500 66 C 49.724 64.744, 47.944 64.744, 46 66 M 99.500 68 C 99.160 68.550, 94.859 69, 89.941 69 L 81 69 81 76.777 C 81 82.180, 81.473 85.230, 82.548 86.765 C 83.878 88.664, 84.032 92.543, 83.637 114.238 C 83.385 128.132, 82.872 141.590, 82.497 144.143 C 82.069 147.061, 82.250 149.599, 82.985 150.971 C 84.108 153.071, 84.652 153.143, 96.927 152.828 C 106.421 152.584, 110.162 152.116, 111.500 151.003 C 113.165 149.619, 113.250 148.020, 112.636 129.667 L 111.974 109.827 114.968 107.030 C 118.606 103.632, 121.594 102.908, 134.434 102.317 C 145.184 101.822, 147.724 102.508, 151.749 106.994 C 153.926 109.420, 153.998 110.154, 153.999 130.005 L 154 150.511 157.528 151.615 C 159.468 152.222, 161.295 152.332, 161.587 151.859 C 161.879 151.387, 165.395 151, 169.401 151 L 176.683 151 177.842 147.134 C 178.600 144.604, 178.993 133.802, 178.979 115.884 C 178.956 85.517, 177.924 76.747, 174.055 74.038 C 172.846 73.192, 170.331 71.230, 168.465 69.678 C 165.139 66.912, 164.890 66.868, 155.786 67.437 C 150.679 67.757, 142.299 68.271, 137.166 68.580 L 127.831 69.141 123.587 73.571 C 120.404 76.893, 118.589 78, 116.326 78 C 112.761 78, 110 75.326, 110 71.871 C 110 70.512, 109.460 68.860, 108.800 68.200 C 107.349 66.749, 100.366 66.599, 99.500 68" />
     </svg>
   )
 }

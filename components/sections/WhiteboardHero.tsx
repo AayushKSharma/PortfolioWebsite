@@ -527,7 +527,9 @@ export default function WhiteboardHero() {
                 </div>
                 <div style={{ display: "flex", gap: 36, flexWrap: "wrap", marginTop: 8 }}>
                   <a className="wb-link" href="/files/Aayush-Kumar-Sharma_Resume.pdf" target="_blank" rel="noopener noreferrer" style={{ ...navLink, fontSize: 27, color: ink(INK.black), transform: "rotate(.8deg)" }}>résumé.pdf</a>
-                  <a className="wb-link" href="https://github.com/AayushKSharma" target="_blank" rel="noopener noreferrer" style={{ ...navLink, fontSize: 27, color: ink(INK.black), transform: "rotate(-1.4deg)" }}>github</a>
+                  <a className="wb-link" href="https://github.com/AayushKSharma" target="_blank" rel="noopener noreferrer" aria-label="GitHub" style={{ ...navLink, color: ink(INK.black), transform: "rotate(-1.4deg)", display: "inline-flex", alignItems: "center", lineHeight: 1 }}>
+                    <SketchGithub color={ink(INK.black)} />
+                  </a>
                   <a className="wb-link" href="mailto:aayushksharma1@gmail.com" style={{ ...navLink, fontSize: 27, color: ink(INK.black), transform: "rotate(.8deg)" }}>reach out!</a>
                 </div>
                 <svg viewBox="0 0 300 26" preserveAspectRatio="none" style={{ display: "block", width: 296, height: 22, overflow: "visible" }}>
@@ -629,6 +631,36 @@ export default function WhiteboardHero() {
         <div style={{ height: 26 }} />
       </div>
     </section>
+  )
+}
+
+function SketchGithub({ color }: { color: string }) {
+  return (
+    <svg
+      viewBox="0 0 72 72"
+      width={34}
+      height={34}
+      aria-hidden
+      style={{ display: "block", overflow: "visible" }}
+    >
+      <g fill="none" stroke={color} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M36 5 L49 7 L59 15 L66 26 L67 38 L63 50 L54 60 L42 66 L30 67 L18 62 L9 52 L5 39 L7 26 L15 14 L26 7 Z" />
+      </g>
+      <g fill="none" stroke={color} strokeWidth="2.05" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M27 29 L23 15 L34 26" />
+        <path d="M41 26 L51 14 L49 30" />
+        <path d="M26 32 C 24 24, 30 20, 36 20 C 45 19, 52 25, 50 34 C 50 42, 44 47, 36 46 C 27 46, 24 39, 26 32 Z" />
+        <path d="M31 45 C 28 52, 30 58, 28 61" />
+        <path d="M36 46 C 35 54, 33 60, 34 63" />
+        <path d="M41 45 C 44 52, 46 58, 48 61" />
+        <path d="M45 42 C 50 47, 54 50, 56 52" />
+        <path d="M28 42 C 23 46, 19 49, 16 51" />
+      </g>
+      <g fill={color}>
+        <ellipse cx="31.2" cy="32.4" rx="2.1" ry="2.5" />
+        <ellipse cx="42.6" cy="31.2" rx="2.4" ry="2.05" />
+      </g>
+    </svg>
   )
 }
 

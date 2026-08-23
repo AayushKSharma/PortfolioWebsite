@@ -42,7 +42,7 @@ const MOBILE = { cw: 652, ch: 988, lift: 9 }
 const MARKER_WIDTH = 6
 const LINK_CLICK_PX = 8
 const ERASE_BRUSH = 40
-const INK_MASK_ID = "wb-ink-mask"
+const INK_MASK_IDS = ["wb-ink-mask-0", "wb-ink-mask-1"] as const
 
 const TAGLINE = (
   <>
@@ -163,7 +163,8 @@ export default function WhiteboardHero() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const inkRef = useRef<HTMLDivElement>(null)
-  const svgMaskImgRef = useRef<SVGImageElement>(null)
+  const svgMaskImg0 = useRef<SVGImageElement>(null)
+  const svgMaskImg1 = useRef<SVGImageElement>(null)
   const maskRef = useRef<HTMLCanvasElement | null>(null)
   const history = useRef<Stroke[]>([])
   const drawing = useRef(false)
@@ -172,6 +173,7 @@ export default function WhiteboardHero() {
   const prev = useRef<{ x: number; y: number } | null>(null)
   const maskPending = useRef(false)
   const maskGen = useRef(0)
+  const maskSlot = useRef(0)
   const maskNeedsReplay = useRef(false)
   const pendingLink = useRef<HTMLAnchorElement | null>(null)
   const downPt = useRef<{ x: number; y: number } | null>(null)
@@ -199,30 +201,39 @@ export default function WhiteboardHero() {
     return maskRef.current
   }, [L.cw, L.ch])
 
+  const applyInkMask = (slot: 0 | 1) => {
+    const el = inkRef.current
+    if (!el) return
+    maskSlot.current = slot
+    const frag = `url(#${INK_MASK_IDS[slot]})`
+    el.style.webkitMaskImage = frag
+    el.style.maskImage = frag
+    el.style.webkitMaskSize = "100% 100%"
+    el.style.maskSize = "100% 100%"
+    el.style.webkitMaskRepeat = "no-repeat"
+    el.style.maskRepeat = "no-repeat"
+    /* Safari won't resample an SVG mask when only <image href> changes; swapping
+       the fragment (and nudging compositing) is what makes holes show up live. */
+    el.style.transform = slot ? "translateZ(0.01px)" : "translateZ(0)"
+  }
+
   const flushMask = useCallback(() => {
     if (!maskRef.current) return
     const dataUrl = maskRef.current.toDataURL()
     const gen = ++maskGen.current
+    const next = (1 - maskSlot.current) as 0 | 1
+    const svg = next === 0 ? svgMaskImg0.current : svgMaskImg1.current
     const decoded = new Image()
     decoded.onload = () => {
       if (gen !== maskGen.current) return
-      const svg = svgMaskImgRef.current
       if (svg) {
         svg.setAttribute("href", dataUrl)
         svg.setAttributeNS("http://www.w3.org/1999/xlink", "href", dataUrl)
       }
-      const el = inkRef.current
-      if (!el) return
-      const frag = `url(#${INK_MASK_ID})`
-      const already = el.style.maskImage.includes(INK_MASK_ID) || el.style.webkitMaskImage.includes(INK_MASK_ID)
-      if (!already) {
-        el.style.webkitMaskImage = frag
-        el.style.maskImage = frag
-        el.style.webkitMaskSize = "100% 100%"
-        el.style.maskSize = "100% 100%"
-        el.style.webkitMaskRepeat = "no-repeat"
-        el.style.maskRepeat = "no-repeat"
-      }
+      requestAnimationFrame(() => {
+        if (gen !== maskGen.current) return
+        applyInkMask(next)
+      })
     }
     decoded.src = dataUrl
   }, [])
@@ -744,13 +755,14 @@ export default function WhiteboardHero() {
 
             <svg width={1} height={1} aria-hidden style={{ position: "absolute", overflow: "hidden", pointerEvents: "none" }}>
               <defs>
-                <mask
-                  id={INK_MASK_ID}
-                  maskUnits="objectBoundingBox"
-                  maskContentUnits="objectBoundingBox"
-                >
-                  <image ref={svgMaskImgRef} x="0" y="0" width="1" height="1" preserveAspectRatio="none" />
-                </mask>
+                {INK_MASK_IDS.map((id, i) => (
+                  <mask key={id} id={id} maskUnits="objectBoundingBox" maskContentUnits="objectBoundingBox">
+                    <image
+                      ref={i === 0 ? svgMaskImg0 : svgMaskImg1}
+                      x="0" y="0" width="1" height="1" preserveAspectRatio="none"
+                    />
+                  </mask>
+                ))}
               </defs>
             </svg>
 

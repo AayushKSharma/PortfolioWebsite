@@ -42,6 +42,7 @@ const MOBILE = { cw: 652, ch: 988, lift: 9 }
 const MARKER_WIDTH = 6
 const LINK_CLICK_PX = 8
 const ERASE_BRUSH = 40
+const INK_MASK_ID = "wb-ink-mask"
 
 const TAGLINE = (
   <>
@@ -119,36 +120,6 @@ function stampErase(
   ctx.restore()
 }
 
-/** One polyline, four passes — same weights as stampErase, but source-over so it can
- *  preview HTML smudging without stacking a fully opaque cover on every pointermove. */
-function strokeSmudge(
-  ctx: CanvasRenderingContext2D,
-  pts: { x: number; y: number }[],
-  fill: string,
-  size = ERASE_BRUSH,
-) {
-  if (!pts.length) return
-  const draw = (width: number, stroke: string, alpha: number) => {
-    ctx.globalAlpha = alpha
-    ctx.strokeStyle = stroke
-    ctx.lineWidth = width
-    ctx.beginPath()
-    ctx.moveTo(pts[0].x, pts[0].y)
-    if (pts.length === 1) ctx.lineTo(pts[0].x + 0.01, pts[0].y)
-    else for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y)
-    ctx.stroke()
-  }
-  ctx.save()
-  ctx.lineCap = "round"
-  ctx.lineJoin = "round"
-  ctx.globalCompositeOperation = "source-over"
-  draw(size, fill, 0.16)
-  draw(size * 0.6, fill, 0.55)
-  draw(size * 0.55, "rgba(255,255,255,.055)", 1)
-  draw(size * 0.95, "rgba(255,255,255,.03)", 1)
-  ctx.restore()
-}
-
 function smudgeLocal(el: HTMLElement, strokes: [number, number, number, number][]) {
   const r = el.getBoundingClientRect()
   const w = Math.max(2, Math.round(r.width * 2))
@@ -192,13 +163,16 @@ export default function WhiteboardHero() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const inkRef = useRef<HTMLDivElement>(null)
-  const erasePreviewRef = useRef<HTMLCanvasElement>(null)
+  const svgMaskImgRef = useRef<SVGImageElement>(null)
   const maskRef = useRef<HTMLCanvasElement | null>(null)
   const history = useRef<Stroke[]>([])
   const drawing = useRef(false)
   const erasingStroke = useRef(false)
   const last = useRef<{ x: number; y: number } | null>(null)
   const prev = useRef<{ x: number; y: number } | null>(null)
+  const maskPending = useRef(false)
+  const maskGen = useRef(0)
+  const maskNeedsReplay = useRef(false)
   const pendingLink = useRef<HTMLAnchorElement | null>(null)
   const downPt = useRef<{ x: number; y: number } | null>(null)
   const hoveredLink = useRef<HTMLAnchorElement | null>(null)
@@ -220,20 +194,37 @@ export default function WhiteboardHero() {
       x.fillStyle = "#fff"
       x.fillRect(0, 0, c.width, c.height)
       maskRef.current = c
+      maskNeedsReplay.current = true
     }
     return maskRef.current
   }, [L.cw, L.ch])
 
   const flushMask = useCallback(() => {
-    const el = inkRef.current
-    if (!el || !maskRef.current) return
-    const url = `url("${maskRef.current.toDataURL()}")`
-    el.style.webkitMaskImage = url
-    el.style.maskImage = url
-    el.style.webkitMaskSize = "100% 100%"
-    el.style.maskSize = "100% 100%"
-    el.style.webkitMaskRepeat = "no-repeat"
-    el.style.maskRepeat = "no-repeat"
+    if (!maskRef.current) return
+    const dataUrl = maskRef.current.toDataURL()
+    const gen = ++maskGen.current
+    const decoded = new Image()
+    decoded.onload = () => {
+      if (gen !== maskGen.current) return
+      const svg = svgMaskImgRef.current
+      if (svg) {
+        svg.setAttribute("href", dataUrl)
+        svg.setAttributeNS("http://www.w3.org/1999/xlink", "href", dataUrl)
+      }
+      const el = inkRef.current
+      if (!el) return
+      const frag = `url(#${INK_MASK_ID})`
+      const already = el.style.maskImage.includes(INK_MASK_ID) || el.style.webkitMaskImage.includes(INK_MASK_ID)
+      if (!already) {
+        el.style.webkitMaskImage = frag
+        el.style.maskImage = frag
+        el.style.webkitMaskSize = "100% 100%"
+        el.style.maskSize = "100% 100%"
+        el.style.webkitMaskRepeat = "no-repeat"
+        el.style.maskRepeat = "no-repeat"
+      }
+    }
+    decoded.src = dataUrl
   }, [])
 
   /** x and y are scaled independently — the phone canvas is portrait. */
@@ -244,30 +235,25 @@ export default function WhiteboardHero() {
     stampErase(m.getContext("2d")!, { x: a.x * sx, y: a.y * sy }, { x: b.x * sx, y: b.y * sy }, size * Math.min(sx, sy))
   }, [mask, L.cw, L.ch])
 
-  const clearErasePreview = () => {
-    const cv = erasePreviewRef.current
-    if (!cv) return
-    cv.getContext("2d")!.clearRect(0, 0, cv.width, cv.height)
-  }
-
-  const cover = chalk ? "#1e2723" : "#faf6ea"
-
-  /** Replay every erase stroke as a single smudge — not per-segment stamps, which go opaque. */
-  const redrawErasePreview = () => {
-    const cv = erasePreviewRef.current
-    if (!cv) return
-    const ctx = cv.getContext("2d")!
-    ctx.clearRect(0, 0, cv.width, cv.height)
+  const replayErasesIntoMask = useCallback(() => {
     for (const entry of history.current) {
       if (entry.tool !== "erase") continue
-      strokeSmudge(ctx, entry.pts, cover)
+      const pts = entry.pts
+      if (!pts.length) continue
+      if (pts.length === 1) punch(pts[0], pts[0])
+      else for (let i = 1; i < pts.length; i++) punch(pts[i - 1], pts[i])
     }
-  }
+  }, [punch])
 
-  /** HTML erase is previewed on the overlay. The CSS mask stays put during the
-   *  gesture — swapping mask-image blanks all preloaded ink on mobile. */
-  const eraseMask = () => {
-    redrawErasePreview()
+  const eraseMask = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+    punch(a, b)
+    if (!maskPending.current) {
+      maskPending.current = true
+      requestAnimationFrame(() => {
+        maskPending.current = false
+        flushMask()
+      })
+    }
   }
 
   const smudgeGhosts = useCallback(() => {
@@ -301,8 +287,12 @@ export default function WhiteboardHero() {
         )
       }
     })
+    if (maskNeedsReplay.current) {
+      maskNeedsReplay.current = false
+      replayErasesIntoMask()
+    }
     flushMask()
-  }, [punch, flushMask])
+  }, [punch, flushMask, replayErasesIntoMask])
 
   /* -------------------------------------------------------------- drawing */
 
@@ -343,6 +333,7 @@ export default function WhiteboardHero() {
   }
 
   const endStroke = () => {
+    if (erasingStroke.current) flushMask()
     drawing.current = false
     erasingStroke.current = false
     last.current = null
@@ -364,7 +355,7 @@ export default function WhiteboardHero() {
       ctx.strokeStyle = "rgba(0,0,0,1)"
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke()
       ctx.globalCompositeOperation = "source-over"
-      eraseMask()
+      eraseMask(a, b)
       return
     }
     ctx.globalCompositeOperation = "source-over"
@@ -479,7 +470,6 @@ export default function WhiteboardHero() {
       ctx.stroke()
     }
     ctx.globalCompositeOperation = "source-over"
-    redrawErasePreview()
   }, [chalk, narrow])
 
   /* Desktop board is 1180px wide; only constrain the body while this view is mounted. */
@@ -501,7 +491,6 @@ export default function WhiteboardHero() {
     const x = m.getContext("2d")!
     x.globalCompositeOperation = "source-over"
     x.clearRect(0, 0, m.width, m.height)
-    clearErasePreview()
     flushMask()
   }
 
@@ -514,7 +503,6 @@ export default function WhiteboardHero() {
     x.globalCompositeOperation = "source-over"
     x.fillStyle = "#fff"
     x.fillRect(0, 0, m.width, m.height)
-    clearErasePreview()
     smudgeGhosts()
   }
 
@@ -754,13 +742,17 @@ export default function WhiteboardHero() {
               </div>
             )}
 
-            <canvas
-              ref={erasePreviewRef}
-              width={L.cw}
-              height={L.ch}
-              aria-hidden
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 3, pointerEvents: "none" }}
-            />
+            <svg width={1} height={1} aria-hidden style={{ position: "absolute", overflow: "hidden", pointerEvents: "none" }}>
+              <defs>
+                <mask
+                  id={INK_MASK_ID}
+                  maskUnits="objectBoundingBox"
+                  maskContentUnits="objectBoundingBox"
+                >
+                  <image ref={svgMaskImgRef} x="0" y="0" width="1" height="1" preserveAspectRatio="none" />
+                </mask>
+              </defs>
+            </svg>
 
             <button
               className="wb-reset"

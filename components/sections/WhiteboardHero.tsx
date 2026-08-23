@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react"
+import LightsSwitch from "@/components/ui/LightsSwitch"
 
 /**
  * Whiteboard hero — desktop board + a re-flowed portrait board for phones.
@@ -428,22 +429,13 @@ export default function WhiteboardHero() {
     ctx.globalCompositeOperation = "source-over"
   }, [chalk, narrow])
 
-  /* Room lighting on <body> so it spans the viewport with no seams.
-     min-width is desktop-only — that constraint is what cropped the phone. */
+  /* Desktop board is 1180px wide; only constrain the body while this view is mounted. */
   useEffect(() => {
-    const b = document.body.style
-    b.minWidth = narrow ? "" : "1180px"
-    b.backgroundColor = chalk ? "#151412" : "#a8926f"
-    b.backgroundImage = chalk
-      ? "repeating-linear-gradient(90deg, rgba(0,0,0,0) 0 118px, rgba(255,230,190,.022) 118px 120px), radial-gradient(72% 40% at 50% 0%, #2c2a26 0%, #232220 34%, #1b1a18 70%, #151412 100%)"
-      : "repeating-linear-gradient(90deg, rgba(0,0,0,0) 0 118px, rgba(80,54,26,.045) 118px 120px), radial-gradient(72% 40% at 50% 0%, #f4e2c1 0%, #e6d2b0 30%, #cdb794 62%, #b39d7c 88%, #a8926f 100%)"
-    b.backgroundRepeat = "repeat, no-repeat"
-    b.backgroundSize = narrow ? "auto, 100% 900px" : "auto, 100% 1400px"
-  }, [chalk, narrow])
+    document.body.style.minWidth = narrow ? "" : "1180px"
+  }, [narrow])
 
   useEffect(() => () => {
-    const b = document.body.style
-    b.minWidth = ""; b.backgroundColor = ""; b.backgroundImage = ""; b.backgroundRepeat = ""; b.backgroundSize = ""
+    document.body.style.minWidth = ""
     hoveredLink.current?.classList.remove("wb-hover")
     hoveredLink.current = null
   }, [])
@@ -540,39 +532,11 @@ export default function WhiteboardHero() {
       <div style={{ position: "relative", background: "transparent", padding: narrow ? "24px 14px 0" : "52px 60px 0" }}>
         {/* wall switch — invisible hit box, visible plate centered inside it */}
         <div style={{ position: "absolute", top: narrow ? 26 : 210, right: narrow ? 8 : 4, zIndex: 6 }}>
-          <button
+          <LightsSwitch
+            on={chalk}
             onClick={() => setTheme(chalk ? "light" : "dark")}
-            aria-label="Lights"
-            aria-pressed={chalk}
-            style={{
-              all: "unset", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-              width: narrow ? 44 : 48, height: narrow ? 52 : 76,
-            }}
-          >
-            <span style={{
-              position: "relative", display: "block",
-              width: narrow ? 30 : 48, height: narrow ? 48 : 76, borderRadius: 5,
-              background: chalk ? "linear-gradient(150deg,#4a453b,#332f28)" : "linear-gradient(150deg,#faf6ec,#e4ddcd)",
-              boxShadow: chalk
-                ? "0 3px 7px rgba(0,0,0,.5), 0 1px 0 rgba(255,240,214,.12) inset"
-                : "0 3px 7px rgba(52,34,14,.3), 0 1px 0 rgba(255,255,255,.85) inset",
-            }}>
-              <span style={{ position: "absolute", left: "50%", top: narrow ? 4 : 7, width: narrow ? 4 : 5, height: narrow ? 4 : 5, marginLeft: narrow ? -2 : -2.5, borderRadius: "50%", background: "radial-gradient(circle at 35% 35%, #cfc8b8, #9c9483)" }} />
-              <span style={{ position: "absolute", left: "50%", bottom: narrow ? 4 : 7, width: narrow ? 4 : 5, height: narrow ? 4 : 5, marginLeft: narrow ? -2 : -2.5, borderRadius: "50%", background: "radial-gradient(circle at 35% 35%, #cfc8b8, #9c9483)" }} />
-              <span style={{
-                position: "absolute", left: narrow ? 7 : 11, top: narrow ? 11 : 17,
-                width: narrow ? 16 : 26, height: narrow ? 26 : 42, borderRadius: 3,
-                background: "linear-gradient(#d7d0c0,#bcb5a5)", boxShadow: "0 1px 3px rgba(52,34,14,.35) inset",
-              }}>
-                <span style={{
-                  position: "absolute", left: narrow ? 1.5 : 2, right: narrow ? 1.5 : 2, top: narrow ? 1.5 : 2,
-                  height: narrow ? 11 : 19, borderRadius: 2,
-                  background: "linear-gradient(#fffdf8,#e6e0d2)", boxShadow: "0 2px 3px rgba(52,34,14,.35)",
-                  transform: `translateY(${chalk ? (narrow ? 11 : 19) : 0}px)`, transition: "transform .16s ease",
-                }} />
-              </span>
-            </span>
-          </button>
+            size={narrow ? "sm" : "lg"}
+          />
         </div>
 
         {/* board */}
@@ -644,6 +608,8 @@ export default function WhiteboardHero() {
                     <path d="M4 10 C 70 20, 140 2, 216 12" fill="none" stroke={ink(INK.red)} strokeWidth="2.6" strokeLinecap="round" />
                   </svg>
                 </div>
+
+                <div style={{ marginTop: "auto", alignSelf: "center", fontSize: 15, color: ink(INK.red), transform: "rotate(-8deg)", whiteSpace: "nowrap" }}>*draw on me!*</div>
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "auto", pointerEvents: "auto" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
@@ -728,6 +694,8 @@ export default function WhiteboardHero() {
                     <CoolS color={ink(INK.black)} width={46} height={82} strokeWidth={2.7} />
                   </div>
                 </div>
+
+                <div style={{ position: "absolute", left: "44%", top: "15%", fontSize: 22, color: ink(INK.red), transform: "rotate(-8deg)", whiteSpace: "nowrap" }}>*draw on me!*</div>
               </div>
             )}
 
@@ -765,9 +733,10 @@ export default function WhiteboardHero() {
           <div style={{ position: "absolute", left: 0, right: 0, top: narrow ? 11 : 16, height: narrow ? 24 : 34, background: "linear-gradient(#9b9384,#78715f)", boxShadow: "0 -6px 10px rgba(46,30,12,.32) inset, 0 12px 20px rgba(46,30,12,.30)" }} />
           <div style={{ position: "absolute", left: 0, right: 0, top: narrow ? 35 : 50, height: narrow ? 8 : 12, background: "linear-gradient(#635c4d,#4a443a)", borderRadius: "0 0 4px 4px" }} />
 
-          <div style={{ position: "absolute", left: narrow ? 8 : 44, top: -4, display: "flex", alignItems: "flex-end", gap: narrow ? 9 : 22, zIndex: 2 }}>
+          <div style={{ position: "absolute", left: narrow ? 8 : 44, bottom: "100%", display: "flex", alignItems: "flex-end", gap: narrow ? 9 : 22, zIndex: 2 }}>
             {MARKERS.map(m => {
               const active = tool === "draw" && color === m.color
+              const band = Math.round(barrelW * 0.15)
               return (
                 <button
                   key={m.color}
@@ -778,13 +747,31 @@ export default function WhiteboardHero() {
                   <span style={{
                     display: "block",
                     width: chalk ? stickW : barrelW, height: chalk ? stickH : barrelH, borderRadius: chalk ? 3 : 5,
-                    background: chalk ? `linear-gradient(178deg, ${CHALK[m.color]} 0%, ${CHALK[m.color]} 58%, rgba(0,0,0,.14) 100%)` : m.barrel,
+                    background: chalk
+                      ? `linear-gradient(178deg, ${CHALK[m.color]} 0%, ${CHALK[m.color]} 58%, rgba(0,0,0,.14) 100%)`
+                      : m.barrel,
                     boxShadow: "0 3px 5px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.25) inset",
                     position: "relative",
                     transform: lift(active, m.rotate),
                     transition: "transform .26s cubic-bezier(.34,1.28,.64,1)",
                   }}>
-                    {!chalk && <span style={{ position: "absolute", right: narrow ? -8 : -14, top: narrow ? 3 : 5, width: narrow ? 11 : 18, height: narrow ? 11 : 16, borderRadius: "2px 4px 4px 2px", background: "linear-gradient(#d8dade,#a9adb2)" }} />}
+                    {!chalk && (
+                      <>
+                        <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: band, background: "#fbfbf9", borderRadius: "5px 0 0 5px", pointerEvents: "none" }} />
+                        <span style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: band, background: "#fbfbf9", borderRadius: "0 5px 5px 0", pointerEvents: "none" }} />
+                        <span style={{
+                          position: "absolute",
+                          right: narrow ? -12 : -22,
+                          top: "50%",
+                          width: narrow ? 13 : 24,
+                          height: narrow ? 14 : 22,
+                          marginTop: narrow ? -7 : -11,
+                          borderRadius: "2px 6px 6px 2px",
+                          background: `linear-gradient(180deg, rgba(255,255,255,.3), transparent 42%, rgba(0,0,0,.22)), ${m.color}`,
+                          boxShadow: "0 1px 3px rgba(0,0,0,.3), 0 1px 0 rgba(255,255,255,.25) inset",
+                        }} />
+                      </>
+                    )}
                   </span>
                 </button>
               )

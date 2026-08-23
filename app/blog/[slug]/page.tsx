@@ -42,7 +42,7 @@ export default async function BlogPostPage({
     <main className="max-w-2xl mx-auto px-4 sm:px-6 pt-28 pb-24">
       <Link
         href="/blog"
-        className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 mb-10 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-neutral-800 hover:text-neutral-950 dark:hover:text-neutral-100 mb-10 transition-colors"
       >
         <ArrowLeft size={14} />
         All posts
@@ -50,22 +50,22 @@ export default async function BlogPostPage({
 
       <header className="mb-10">
         <div className="flex items-center gap-3 mb-4">
-          <time className="text-sm text-neutral-400 dark:text-neutral-500">{date}</time>
+          <time className="text-sm text-neutral-700 dark:text-neutral-500">{date}</time>
           {meta.tags.map((tag) => (
             <span
               key={tag}
-              className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
+              className="text-xs px-2 py-0.5 rounded-full bg-[var(--chip)] text-neutral-800 dark:text-neutral-400"
             >
               {tag}
             </span>
           ))}
         </div>
-        <h1 className="text-4xl font-bold text-neutral-900 dark:text-neutral-100">
+        <h1 className="text-4xl font-bold text-neutral-950 dark:text-neutral-100">
           {meta.title}
         </h1>
       </header>
 
-      <article className="prose prose-neutral dark:prose-invert max-w-none prose-a:text-blue-500 prose-headings:font-semibold prose-headings:text-neutral-900 dark:prose-headings:text-neutral-100 prose-p:text-neutral-600 dark:prose-p:text-neutral-400 prose-code:text-neutral-800 dark:prose-code:text-neutral-200 prose-pre:bg-neutral-100 dark:prose-pre:bg-neutral-900">
+      <article className="prose prose-neutral dark:prose-invert max-w-none prose-a:text-blue-800 dark:prose-a:text-blue-500 prose-headings:font-semibold prose-headings:text-neutral-950 dark:prose-headings:text-neutral-100 prose-p:text-neutral-800 dark:prose-p:text-neutral-400 prose-li:text-neutral-800 dark:prose-li:text-neutral-400 prose-code:text-neutral-950 dark:prose-code:text-neutral-200 prose-pre:bg-[var(--chip)]">
         <MDXRemote source={content} />
       </article>
     </main>

@@ -15,13 +15,23 @@
 }
 
 :root {
-  --background: #ffffff;
+  --background: #a8926f;
   --foreground: #171717;
+  --island: #dcc9a4;
+  --island-border: #c4ae86;
+  --island-border-hover: #a8926f;
+  --chip: #d4bf96;
+  --nav: color-mix(in srgb, #e6d2b0 86%, transparent);
 }
 
 .dark {
-  --background: #0a0a0a;
+  --background: #151412;
   --foreground: #ededed;
+  --island: #171717;
+  --island-border: #262626;
+  --island-border-hover: #525252;
+  --chip: #262626;
+  --nav: color-mix(in srgb, #0a0a0a 80%, transparent);
 }
 
 @theme inline {
@@ -38,8 +48,27 @@ html {
 
 body {
   color: var(--foreground);
+  min-height: 100vh;
+  background-color: var(--background);
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0 118px, rgba(80, 54, 26, 0.045) 118px 120px),
+    radial-gradient(72% 40% at 50% 0%, #f4e2c1 0%, #e6d2b0 30%, #cdb794 62%, #b39d7c 88%, #a8926f 100%);
+  background-repeat: repeat, no-repeat;
+  background-size: auto, 100% 1400px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html.dark body {
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0 118px, rgba(255, 230, 190, 0.022) 118px 120px),
+    radial-gradient(72% 40% at 50% 0%, #2c2a26 0%, #232220 34%, #1b1a18 70%, #151412 100%);
+}
+
+@media (max-width: 700px) {
+  body {
+    background-size: auto, 100% 900px;
+  }
 }
 
 .wb-link {
@@ -69,8 +98,4 @@ body {
 
 html.dark .wb-reset:hover {
   color: #f1ece0;
-}
-
-@media (max-width: 700px) {
-  html { background-color: transparent; }
 }

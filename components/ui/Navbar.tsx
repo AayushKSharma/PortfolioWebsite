@@ -19,7 +19,7 @@ export default function Navbar() {
   if (pathname === "/") return null
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-[var(--island-border)] bg-[var(--nav)] backdrop-blur-md">
       <nav className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <Link
           href="/"
@@ -28,31 +28,29 @@ export default function Navbar() {
           yush<span className="text-blue-500">.</span>
         </Link>
 
-        {/* Desktop links */}
-        <div className="hidden sm:flex items-center gap-1">
-          {navLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                pathname === href
-                  ? "text-neutral-900 dark:text-neutral-100 bg-neutral-100 dark:bg-neutral-800"
-                  : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
-          <ThemeToggle />
-        </div>
-
-        {/* Mobile */}
-        <div className="flex sm:hidden items-center gap-2">
-          <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <div className="hidden sm:flex items-center gap-1">
+            {navLinks.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                  pathname === href
+                    ? "text-neutral-900 dark:text-neutral-100 bg-[var(--chip)]"
+                    : "text-neutral-800 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-neutral-100 hover:bg-[var(--chip)]"
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+          <div className="ml-1 shrink-0">
+            <ThemeToggle />
+          </div>
           <button
             onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
-            className="p-2 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="sm:hidden p-2 rounded-lg text-neutral-800 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-neutral-100 hover:bg-[var(--chip)] transition-colors"
           >
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>
@@ -61,7 +59,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="sm:hidden border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
+        <div className="sm:hidden border-t border-[var(--island-border)] bg-[var(--island)]">
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
@@ -69,8 +67,8 @@ export default function Navbar() {
               onClick={() => setOpen(false)}
               className={`block px-6 py-3 text-sm transition-colors ${
                 pathname === href
-                  ? "text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900"
-                  : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+                  ? "text-neutral-900 dark:text-neutral-100 bg-[var(--chip)]"
+                  : "text-neutral-800 dark:text-neutral-400 hover:text-neutral-950 dark:hover:text-neutral-100"
               }`}
             >
               {label}

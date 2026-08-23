@@ -24,11 +24,11 @@ export default function About() {
             I&apos;m a software engineer based in Dallas, Texas. I greatly enjoy discovering and listening to music (see my work for <Link href="/projects/aotw" style={{ textDecoration: "underline" }}>Album of the Week</Link> or my <a href="https://open.spotify.com/user/meowmaster6400?si=2d52bb77274947b4" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Spotify</a>).  
           </p>
           <p>
-            Currently working on <Link href="/projects/aotw" style={{ textDecoration: "underline" }}>Album of the Week</Link>. Previously at <a href="https://valiantresidential.com/" target="_blank" rel="noopener noreferrer"  style={{ textDecoration: "underline" }}>Valiant Residential</a>.
-            When I&apos;m not coding, I&apos;m most likely playing Brawl Stars.
+            During my mathematics undergrad at Texas A&M University, I was working on <Link href="/projects/aotw" style={{ textDecoration: "underline" }}>Album of the Week</Link>. Now I'm forward deployed in AI systems at <a href="https://valiantresidential.com/" target="_blank" rel="noopener noreferrer"  style={{ textDecoration: "underline" }}>Valiant Residential</a>.
+            When I&apos;m not coding, I&apos;m most likely playing Brawl Stars or working on my Obsidian clone.
           </p>
           <p>
-            I care a lot about developer experience, clean APIs, and writing software that
+            I care a lot about developer experience, backend / systems engineering, and writing software that
             other people actually enjoy using.
           </p>
         </div>

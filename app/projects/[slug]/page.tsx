@@ -37,17 +37,17 @@ export default async function ProjectPage({
     <main className="max-w-2xl mx-auto px-4 sm:px-6 pt-28 pb-24">
       <Link
         href="/projects"
-        className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 mb-10 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-neutral-800 hover:text-neutral-950 dark:hover:text-neutral-100 mb-10 transition-colors"
       >
         <ArrowLeft size={14} />
         All projects/experience
       </Link>
 
       <header className="mb-8">
-        <h1 className="text-4xl font-bold text-neutral-900 dark:text-neutral-100 mb-3">
+        <h1 className="text-4xl font-bold text-neutral-950 dark:text-neutral-100 mb-3">
           {meta.title}
         </h1>
-        <p className="text-neutral-500 dark:text-neutral-400 mb-6 leading-relaxed">
+        <p className="text-neutral-800 dark:text-neutral-400 mb-6 leading-relaxed">
           {meta.description}
         </p>
 
@@ -55,7 +55,7 @@ export default async function ProjectPage({
           {meta.tech.map((t) => (
             <span
               key={t}
-              className="text-sm px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
+              className="text-sm px-3 py-1 rounded-full bg-[var(--chip)] text-neutral-900 dark:text-neutral-300"
             >
               {t}
             </span>
@@ -68,7 +68,7 @@ export default async function ProjectPage({
               href={meta.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-neutral-200 dark:border-neutral-800 text-sm text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 dark:hover:border-neutral-600 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--island-border)] text-sm text-neutral-900 dark:text-neutral-300 hover:border-[var(--island-border-hover)] transition-colors"
             >
               <GithubIcon size={15} />
               View on GitHub
@@ -88,7 +88,7 @@ export default async function ProjectPage({
         </div>
       </header>
 
-      <article className="prose prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-base prose-neutral dark:prose-invert max-w-none prose-a:text-blue-500 prose-headings:font-semibold prose-headings:text-neutral-900 dark:prose-headings:text-neutral-100 prose-p:text-neutral-600 dark:prose-p:text-neutral-400 prose-code:text-neutral-800 dark:prose-code:text-neutral-200 prose-pre:bg-neutral-100 dark:prose-pre:bg-neutral-900">
+      <article className="prose prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-base prose-neutral dark:prose-invert max-w-none prose-a:text-blue-800 dark:prose-a:text-blue-500 prose-headings:font-semibold prose-headings:text-neutral-950 dark:prose-headings:text-neutral-100 prose-p:text-neutral-800 dark:prose-p:text-neutral-400 prose-li:text-neutral-800 dark:prose-li:text-neutral-400 prose-code:text-neutral-950 dark:prose-code:text-neutral-200 prose-pre:bg-[var(--chip)]">
         <MDXRemote source={content} />
       </article>
     </main>

@@ -12,7 +12,7 @@ export default function BlogList({ posts }: { posts: BlogPost[] }) {
 
   if (posts.length === 0) {
     return (
-      <p className="text-neutral-500 dark:text-neutral-400 text-sm">
+      <p className="text-neutral-800 dark:text-neutral-400 text-sm">
         No posts yet — check back soon.
       </p>
     )

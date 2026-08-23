@@ -41,6 +41,7 @@ const MOBILE = { cw: 652, ch: 988, lift: 9 }
 
 const MARKER_WIDTH = 6
 const LINK_CLICK_PX = 8
+const ERASE_BRUSH = 40
 
 const TAGLINE = (
   <>
@@ -115,6 +116,36 @@ function stampErase(
   ctx.strokeStyle = "rgba(255,255,255,.03)"
   ctx.lineWidth = size * 0.95
   ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke()
+  ctx.restore()
+}
+
+/** One polyline, four passes — same weights as stampErase, but source-over so it can
+ *  preview HTML smudging without stacking a fully opaque cover on every pointermove. */
+function strokeSmudge(
+  ctx: CanvasRenderingContext2D,
+  pts: { x: number; y: number }[],
+  fill: string,
+  size = ERASE_BRUSH,
+) {
+  if (!pts.length) return
+  const draw = (width: number, stroke: string, alpha: number) => {
+    ctx.globalAlpha = alpha
+    ctx.strokeStyle = stroke
+    ctx.lineWidth = width
+    ctx.beginPath()
+    ctx.moveTo(pts[0].x, pts[0].y)
+    if (pts.length === 1) ctx.lineTo(pts[0].x + 0.01, pts[0].y)
+    else for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y)
+    ctx.stroke()
+  }
+  ctx.save()
+  ctx.lineCap = "round"
+  ctx.lineJoin = "round"
+  ctx.globalCompositeOperation = "source-over"
+  draw(size, fill, 0.16)
+  draw(size * 0.6, fill, 0.55)
+  draw(size * 0.55, "rgba(255,255,255,.055)", 1)
+  draw(size * 0.95, "rgba(255,255,255,.03)", 1)
   ctx.restore()
 }
 
@@ -206,7 +237,7 @@ export default function WhiteboardHero() {
   }, [])
 
   /** x and y are scaled independently — the phone canvas is portrait. */
-  const punch = useCallback((a: { x: number; y: number }, b: { x: number; y: number }, size = 40) => {
+  const punch = useCallback((a: { x: number; y: number }, b: { x: number; y: number }, size = ERASE_BRUSH) => {
     const m = mask()
     const sx = m.width / L.cw
     const sy = m.height / L.ch
@@ -219,28 +250,24 @@ export default function WhiteboardHero() {
     cv.getContext("2d")!.clearRect(0, 0, cv.width, cv.height)
   }
 
-  const paintErasePreview = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+  const cover = chalk ? "#1e2723" : "#faf6ea"
+
+  /** Replay every erase stroke as a single smudge — not per-segment stamps, which go opaque. */
+  const redrawErasePreview = () => {
     const cv = erasePreviewRef.current
     if (!cv) return
     const ctx = cv.getContext("2d")!
-    ctx.save()
-    ctx.lineCap = "round"
-    ctx.lineJoin = "round"
-    ctx.globalCompositeOperation = "source-over"
-    ctx.strokeStyle = chalk ? "#1e2723" : "#faf6ea"
-    ctx.lineWidth = 40
-    ctx.beginPath()
-    ctx.moveTo(a.x, a.y)
-    ctx.lineTo(b.x, b.y)
-    ctx.stroke()
-    ctx.restore()
+    ctx.clearRect(0, 0, cv.width, cv.height)
+    for (const entry of history.current) {
+      if (entry.tool !== "erase") continue
+      strokeSmudge(ctx, entry.pts, cover)
+    }
   }
 
-  /** Punch the offscreen mask, but do not push it to CSS until the stroke ends.
-   *  Swapping mask-image data URLs every frame blanks the HTML ink on mobile. */
-  const eraseMask = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-    punch(a, b)
-    paintErasePreview(a, b)
+  /** HTML erase is previewed on the overlay. The CSS mask stays put during the
+   *  gesture — swapping mask-image blanks all preloaded ink on mobile. */
+  const eraseMask = () => {
+    redrawErasePreview()
   }
 
   const smudgeGhosts = useCallback(() => {
@@ -316,10 +343,6 @@ export default function WhiteboardHero() {
   }
 
   const endStroke = () => {
-    if (erasingStroke.current) {
-      flushMask()
-      clearErasePreview()
-    }
     drawing.current = false
     erasingStroke.current = false
     last.current = null
@@ -341,7 +364,7 @@ export default function WhiteboardHero() {
       ctx.strokeStyle = "rgba(0,0,0,1)"
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke()
       ctx.globalCompositeOperation = "source-over"
-      eraseMask(a, b)
+      eraseMask()
       return
     }
     ctx.globalCompositeOperation = "source-over"
@@ -400,8 +423,8 @@ export default function WhiteboardHero() {
       return
     }
     const p = pos(e)
-    segment(last.current, p)
     history.current[history.current.length - 1]?.pts.push(p)
+    segment(last.current, p)
     last.current = p
   }
 
@@ -417,7 +440,7 @@ export default function WhiteboardHero() {
   useLayoutEffect(() => { smudgeGhosts() }, [smudgeGhosts, narrow])
   useEffect(() => {
     const raf = requestAnimationFrame(() => smudgeGhosts())
-    document.fonts?.ready.then(() => smudgeGhosts())
+    document.fonts?.ready.then(() => { if (!drawing.current) smudgeGhosts() })
     return () => cancelAnimationFrame(raf)
   }, [smudgeGhosts, narrow])
 
@@ -456,6 +479,7 @@ export default function WhiteboardHero() {
       ctx.stroke()
     }
     ctx.globalCompositeOperation = "source-over"
+    redrawErasePreview()
   }, [chalk, narrow])
 
   /* Desktop board is 1180px wide; only constrain the body while this view is mounted. */

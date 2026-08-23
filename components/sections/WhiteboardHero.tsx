@@ -132,7 +132,7 @@ function smudgeLocal(el: HTMLElement, strokes: [number, number, number, number][
   for (const [ax, ay, bx, by] of strokes) {
     stampErase(ctx, { x: ax * w, y: ay * h }, { x: bx * w, y: by * h }, brush)
   }
-  const url = `url(${c.toDataURL()})`
+  const url = `url("${c.toDataURL()}")`
   el.style.webkitMaskImage = url
   el.style.maskImage = url
   el.style.webkitMaskSize = "100% 100%"
@@ -161,12 +161,13 @@ export default function WhiteboardHero() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const inkRef = useRef<HTMLDivElement>(null)
+  const erasePreviewRef = useRef<HTMLCanvasElement>(null)
   const maskRef = useRef<HTMLCanvasElement | null>(null)
   const history = useRef<Stroke[]>([])
   const drawing = useRef(false)
+  const erasingStroke = useRef(false)
   const last = useRef<{ x: number; y: number } | null>(null)
   const prev = useRef<{ x: number; y: number } | null>(null)
-  const maskPending = useRef(false)
   const pendingLink = useRef<HTMLAnchorElement | null>(null)
   const downPt = useRef<{ x: number; y: number } | null>(null)
   const hoveredLink = useRef<HTMLAnchorElement | null>(null)
@@ -184,7 +185,7 @@ export default function WhiteboardHero() {
       const c = document.createElement("canvas")
       c.width = w
       c.height = h
-      const x = c.getContext("2d")!
+      const x = c.getContext("2d", { willReadFrequently: true })!
       x.fillStyle = "#fff"
       x.fillRect(0, 0, c.width, c.height)
       maskRef.current = c
@@ -195,7 +196,7 @@ export default function WhiteboardHero() {
   const flushMask = useCallback(() => {
     const el = inkRef.current
     if (!el || !maskRef.current) return
-    const url = `url(${maskRef.current.toDataURL()})`
+    const url = `url("${maskRef.current.toDataURL()}")`
     el.style.webkitMaskImage = url
     el.style.maskImage = url
     el.style.webkitMaskSize = "100% 100%"
@@ -212,12 +213,34 @@ export default function WhiteboardHero() {
     stampErase(m.getContext("2d")!, { x: a.x * sx, y: a.y * sy }, { x: b.x * sx, y: b.y * sy }, size * Math.min(sx, sy))
   }, [mask, L.cw, L.ch])
 
+  const clearErasePreview = () => {
+    const cv = erasePreviewRef.current
+    if (!cv) return
+    cv.getContext("2d")!.clearRect(0, 0, cv.width, cv.height)
+  }
+
+  const paintErasePreview = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+    const cv = erasePreviewRef.current
+    if (!cv) return
+    const ctx = cv.getContext("2d")!
+    ctx.save()
+    ctx.lineCap = "round"
+    ctx.lineJoin = "round"
+    ctx.globalCompositeOperation = "source-over"
+    ctx.strokeStyle = chalk ? "#1e2723" : "#faf6ea"
+    ctx.lineWidth = 40
+    ctx.beginPath()
+    ctx.moveTo(a.x, a.y)
+    ctx.lineTo(b.x, b.y)
+    ctx.stroke()
+    ctx.restore()
+  }
+
+  /** Punch the offscreen mask, but do not push it to CSS until the stroke ends.
+   *  Swapping mask-image data URLs every frame blanks the HTML ink on mobile. */
   const eraseMask = (a: { x: number; y: number }, b: { x: number; y: number }) => {
     punch(a, b)
-    if (!maskPending.current) {
-      maskPending.current = true
-      requestAnimationFrame(() => { maskPending.current = false; flushMask() })
-    }
+    paintErasePreview(a, b)
   }
 
   const smudgeGhosts = useCallback(() => {
@@ -293,7 +316,12 @@ export default function WhiteboardHero() {
   }
 
   const endStroke = () => {
+    if (erasingStroke.current) {
+      flushMask()
+      clearErasePreview()
+    }
     drawing.current = false
+    erasingStroke.current = false
     last.current = null
     prev.current = null
     downPt.current = null
@@ -335,6 +363,7 @@ export default function WhiteboardHero() {
 
   const startStroke = (e: React.PointerEvent<HTMLCanvasElement>, p: { x: number; y: number }) => {
     drawing.current = true
+    erasingStroke.current = tool === "erase"
     prev.current = null
     last.current = p
     history.current.push({ tool, color, w: MARKER_WIDTH, pts: [p] })
@@ -448,6 +477,7 @@ export default function WhiteboardHero() {
     const x = m.getContext("2d")!
     x.globalCompositeOperation = "source-over"
     x.clearRect(0, 0, m.width, m.height)
+    clearErasePreview()
     flushMask()
   }
 
@@ -460,6 +490,7 @@ export default function WhiteboardHero() {
     x.globalCompositeOperation = "source-over"
     x.fillStyle = "#fff"
     x.fillRect(0, 0, m.width, m.height)
+    clearErasePreview()
     smudgeGhosts()
   }
 
@@ -698,6 +729,14 @@ export default function WhiteboardHero() {
                 <div style={{ position: "absolute", left: "44%", top: "15%", fontSize: 22, color: ink(INK.red), transform: "rotate(-8deg)", whiteSpace: "nowrap" }}>*draw on me!*</div>
               </div>
             )}
+
+            <canvas
+              ref={erasePreviewRef}
+              width={L.cw}
+              height={L.ch}
+              aria-hidden
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 3, pointerEvents: "none" }}
+            />
 
             <button
               className="wb-reset"

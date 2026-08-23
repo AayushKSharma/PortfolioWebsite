@@ -1,7 +1,7 @@
 ---
 title: "Portfolio Website"
-description: "Personal portfolio built with Next.js 15, TypeScript, Tailwind CSS v4, and Framer Motion."
-tech: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"]
+description: "Personal portfolio with an interactive whiteboard hero, built with Next.js, TypeScript, Tailwind CSS v4, and Framer Motion."
+tech: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion", "Canvas"]
 githubUrl: "https://github.com/AayushKSharma/PortfolioWebsite"
 liveUrl: "https://www.aayushksharma.com/"
 featured: true
@@ -9,17 +9,28 @@ featured: true
 
 ## Overview
 
-A modern personal portfolio and blog built from scratch with Next.js App Router. Designed for performance and developer experience — every page is statically generated at build time.
+A personal portfolio and blog built from scratch with Next.js App Router. The homepage is now an interactive dry-erase board — markers, eraser, spray-bottle wipe, hand-drawn doodles — sitting on a cork-toned page. Draw on it, erase it, or flip the lights switch to chalkboard. Every other page is still statically generated at build time.
 
 ## Features
 
+- **Interactive whiteboard** — HTML "ink" for the name, nav, and doodles, with a canvas overlay for drawing. Four markers, an eraser, a spray-bottle wipe, pre-smudged ghost notes, and hand-drawn GitHub / LinkedIn marks. Links glow instead of taking a highlight box.
+- **Mobile board** — a portrait reflow under 700px that shares one canvas, mask, and stroke history with desktop. Touch targets stay ≥44px without scaling the artwork.
+- **Lights switch** — dark mode is a physical rocker on the board and in the navbar; chalk ink and a chalkboard surface come along for the ride.
 - **MDX blog** — write posts in Markdown with full React component support
-- **Dark mode** — class-based theming via `next-themes`, zero flash on load
 - **Smooth animations** — scroll-triggered Framer Motion transitions throughout
 - **Static generation** — all pages pre-rendered, minimal client JavaScript
 
 ## Technical decisions
 
-The App Router's server components are used wherever possible, keeping client JavaScript small. `'use client'` is added only where needed (Navbar, ThemeToggle, animation wrappers).
+The App Router's server components are used wherever possible, keeping client JavaScript small. `'use client'` is added only where needed (Navbar, ThemeToggle, WhiteboardHero, animation wrappers).
 
-Tailwind CSS v4's new `@custom-variant` directive handles the dark mode selector, replacing the old `darkMode: 'class'` config option.
+The board is not a canvas-drawn UI. Copy and links stay real DOM (Excalifont / Virgil, plus the social doodles) so they remain selectable and clickable; the canvas only records strokes. Erase uses an offscreen mask so marker residue can stay on the board. `useIsNarrow()` (matchMedia) picks layout on the client — SSR always ships the desktop board, so desktop never layout-shifts.
+
+Tailwind CSS v4's `@custom-variant` directive handles the dark mode selector. Theme tokens (`--island`, `--chip`, `--nav`) carry a warm cork/wood palette through the rest of the site.
+
+## TODO
+
+Next pass is to push the physical-object metaphor off the hero and onto the rest of the site.
+
+- **Bulletin board** — restyle the text sections (About, Skills, projects grid, blog) as a cork bulletin board. Same content, pinned as overlapping memos and posters: tape, pushpins, slight rotation, mixed paper stock. The cork/wood page background is already in place; this is the layout and component work to make those pages *feel* like things stuck to a wall instead of a type stack.
+- **CD shelf** — a 3D shelf of my favorite albums, displayed like CDs standing in a rack or shelf. Clicking a disc should pull it forward and open my review of that album. Treat it as a small 3D scene (perspective, spine vs. face, hover/select) rather than a flat grid of covers, and keep reviews as content so they can grow without another layout rewrite.

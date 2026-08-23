@@ -41,6 +41,12 @@ const MOBILE = { cw: 652, ch: 988, lift: 9 }
 const MARKER_WIDTH = 6
 const LINK_CLICK_PX = 8
 
+const TAGLINE = (
+  <>
+    a music-loving software engineer:<br />backend &amp; FD in AI systems
+  </>
+)
+
 type Tool = "draw" | "erase"
 type Stroke = { tool: Tool; color: InkColor; w: number; pts: { x: number; y: number }[] }
 
@@ -610,7 +616,7 @@ export default function WhiteboardHero() {
                 </div>
 
                 <div style={{ fontSize: 17, color: chalk ? "#cfcabd" : "#3d4450", lineHeight: 1.4, transform: "rotate(-.6deg)" }}>
-                  music-loving software engineer<br />who loves building on the web
+                  {TAGLINE}
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 14, alignItems: "flex-start", pointerEvents: "auto", marginTop: 4 }}>
@@ -678,7 +684,7 @@ export default function WhiteboardHero() {
                     </span>
                   </div>
                   <div style={{ fontSize: 25, color: chalk ? "#cfcabd" : "#3d4450", maxWidth: 420, lineHeight: 1.45, transform: "rotate(-.6deg)" }}>
-                    music-loving software engineer<br />who loves building on the web
+                    {TAGLINE}
                   </div>
                 </div>
 

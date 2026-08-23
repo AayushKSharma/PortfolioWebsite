@@ -1,0 +1,89 @@
+/* ── paste into app/globals.css ──────────────────────────────────────────── */
+
+/* Cascadia is already in public/fonts/Cascadia/ but has no @font-face yet.
+   Put this next to the Excalifont / Virgil blocks. */
+@font-face {
+  font-family: "Cascadia";
+  src: url("/fonts/Cascadia/CascadiaCode-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+
+/* Board tokens. Add inside the existing :root block (they're theme-neutral —
+   the cork looks the same in light and dark). */
+:root {
+  --cork-paper: #f6efdd;
+  --cork-ink: #2a2117;
+  --cork-ink2: #3f3428;
+  --cork-ink3: #6b563c;
+  --pin-red: #c0392b;
+  --cork-grime: 0.85;   /* 0 = pristine board, 1 = full aging */
+}
+
+/* Paper lifts slightly under the cursor. */
+.cork-lift { transition: box-shadow 0.18s ease; }
+.cork-lift:hover {
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.22), 0 32px 52px rgba(20, 10, 0, 0.5) !important;
+}
+.cork-curl { transition: width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease; }
+.cork-lift:hover .cork-curl {
+  width: 62px;
+  height: 62px;
+  box-shadow: -11px -11px 22px rgba(20, 10, 0, 0.46);
+}
+
+/* Typed prose on the stapled sheets — replaces the prose-* utility stack.
+   Mono body, handwritten headings, no rounded chrome. */
+.cork-prose {
+  font-family: Cascadia, ui-monospace, monospace;
+  font-size: 13.5px;
+  line-height: 1.95;
+  color: var(--cork-ink2);
+  text-wrap: pretty;
+}
+.cork-prose p,
+.cork-prose ul,
+.cork-prose ol { margin: 0 0 14px; }
+.cork-prose ul,
+.cork-prose ol { padding-left: 22px; }
+.cork-prose li { margin-bottom: 4px; }
+.cork-prose h1,
+.cork-prose h2,
+.cork-prose h3 {
+  font-family: Excalifont, cursive;
+  font-weight: 400;
+  color: var(--cork-ink);
+  margin: 22px 0 10px;
+  line-height: 1.2;
+}
+.cork-prose h1 { font-size: 30px; }
+.cork-prose h2 { font-size: 25px; }
+.cork-prose h3 { font-size: 20px; }
+.cork-prose a { color: var(--cork-ink); text-decoration: underline; }
+.cork-prose a:hover { color: #7d2418; }
+.cork-prose strong { font-weight: 700; color: var(--cork-ink); }
+.cork-prose code {
+  font-size: 12.5px;
+  background: rgba(52, 40, 24, 0.09);
+  padding: 1px 5px;
+}
+.cork-prose pre {
+  background: rgba(52, 40, 24, 0.09);
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.7;
+  margin: 0 0 16px;
+}
+.cork-prose pre code { background: none; padding: 0; }
+.cork-prose img { max-width: 100%; height: auto; }
+.cork-prose hr {
+  border: 0;
+  border-top: 1px solid rgba(52, 40, 24, 0.22);
+  margin: 20px 0;
+}
+
+/* The boards are authored at 1180px and scaled down; don't let the old
+   min-width rule fight them. */
+@media (max-width: 1180px) {
+  body { min-width: 0; }
+}

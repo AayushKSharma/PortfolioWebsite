@@ -1,9 +1,9 @@
+// app/projects/page.tsx
+
 import type { Metadata } from "next"
 import { getAllProjects } from "@/lib/projects"
 import ProjectsBoard from "@/components/sections/ProjectsBoard"
-import ProjectsGrid from "@/components/sections/ProjectsGrid"
 import Skills from "@/components/sections/Skills"
-import BoardSwitch from "@/components/board/BoardSwitch"
 
 export const metadata: Metadata = {
   title: "Projects & Experience",
@@ -15,10 +15,7 @@ export default async function ProjectsPage() {
 
   return (
     <main className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 pt-28 pb-24">
-      <BoardSwitch
-        board={<ProjectsBoard projects={projects} />}
-        fallback={<ProjectsGrid projects={projects} />}
-      />
+      <ProjectsBoard projects={projects} />
       <Skills />
     </main>
   )

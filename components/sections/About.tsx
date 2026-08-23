@@ -5,12 +5,12 @@ import { motion } from "framer-motion"
 import { useInView } from "framer-motion"
 import { useRef } from "react"
 
-export default function About() {
+export default function About({ id }: { id?: string } = {}) {
   const ref = useRef<HTMLElement>(null)
   const inView = useInView(ref, { once: true, margin: "-80px" })
 
   return (
-    <section ref={ref} id="about" className="py-24">
+    <section ref={ref} id={id} className="py-24">
       <motion.div
         initial={{ opacity: 0, y: 32 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}

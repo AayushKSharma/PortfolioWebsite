@@ -16,7 +16,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
-  if (pathname === "/") return null
+  if (pathname === "/" || pathname.startsWith("/projects") || pathname.startsWith("/blog")) return null
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-[var(--island-border)] bg-[var(--nav)] backdrop-blur-md">

@@ -41,9 +41,13 @@ export function splitSheets(md: string): Sheet[] {
   return sheets;
 }
 
-/** Rough sheet height in board px, for stacking. */
-export function estimateSheetHeight(s: Sheet, width = 864): number {
+/** Rough sheet height in board px, for the board's min-height. */
+export function estimateSheetHeight(s: Sheet, width = 864, extra = 0): number {
   const chars = s.body.replace(/\s+/g, " ").length;
   const lines = Math.ceil((chars * 7.6) / (width - 104));
-  return Math.min(760, Math.round(120 + (s.heading ? 54 : 0) + lines * 26.3));
+  const headings = (s.body.match(/^#{1,3}\s/gm) || []).length;
+  const items = (s.body.match(/^\s*[-*]\s/gm) || []).length;
+  return Math.round(
+    120 + extra + (s.heading ? 54 : 0) + headings * 32 + items * 10 + lines * 26.3,
+  );
 }

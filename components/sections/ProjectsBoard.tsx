@@ -1,11 +1,13 @@
 // components/sections/ProjectsBoard.tsx
 
 import type { Project } from "@/lib/projects";
-import { packBoard, estimateFlyerHeight, type PackInput, type Span } from "@/lib/board";
+import { packBoard, estimateFlyerHeight, rotationFor, type PackInput, type Span } from "@/lib/board";
 import { pinsFor, pinHeight } from "@/lib/boardAttachments";
+import { SKILL_GROUPS } from "@/lib/skills";
 import BoardFrame from "@/components/board/BoardFrame";
 import Flyer from "@/components/board/Flyer";
 import PinnedAttachment from "@/components/board/PinnedAttachment";
+import StickyNote from "@/components/board/StickyNote";
 
 const BOARD = "projects";
 
@@ -33,12 +35,26 @@ export default function ProjectsBoard({ projects }: { projects: Project[] }) {
   const { placements, height } = packBoard(items);
   const pinBottom = Math.max(0, ...pins.map((p) => p.y + pinHeight(p) + 44));
 
+  const STICKY_H = 186;
+  const stickyY = Math.max(height, pinBottom) + 20;
+  const boardH = stickyY + STICKY_H + 52;
+
+  const stickyLook = {
+    languages: { color: "#f5e488", wash: "#f8ea9c", ink: "#3a3116" },
+    frontend: { color: "#f3c6b4", wash: "#f7d4c6", ink: "#4a2c22" },
+    backend: { color: "#cfe8a8", wash: "#dcefc0", ink: "#2c3a18" },
+    infrastructure: { color: "#c5dcf0", wash: "#d7e8f6", ink: "#1e3348" },
+  } as const;
+  const stickyX = [52, 318, 590, 862];
+  const stickyNudge = [8, -12, 6, -8];
+
   return (
     <BoardFrame
       title="projects & experience"
       meta={`${projects.length} POSTED`}
-      height={Math.max(height, pinBottom)}
+      height={boardH}
       stickyRotate={2.6}
+      backHref="/"
     >
       {placements.map((pl, i) => {
         const p = ordered[i];
@@ -70,6 +86,25 @@ export default function ProjectsBoard({ projects }: { projects: Project[] }) {
       {pins.map((pin) => (
         <PinnedAttachment key={pin.id} board={BOARD} pin={pin} />
       ))}
+
+      {SKILL_GROUPS.map((group, i) => {
+        const look = stickyLook[group.id];
+        return (
+          <StickyNote
+            key={group.id}
+            board={BOARD}
+            id={`skill-${group.id}`}
+            x={stickyX[i]}
+            y={stickyY + stickyNudge[i]}
+            rotate={rotationFor(`skill-${group.id}`, 2.8)}
+            color={look.color}
+            wash={look.wash}
+            ink={look.ink}
+            title={group.label}
+            items={group.skills}
+          />
+        );
+      })}
     </BoardFrame>
   );
 }

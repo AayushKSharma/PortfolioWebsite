@@ -3,7 +3,7 @@
 import { useTheme } from "next-themes"
 import LightsSwitch from "./LightsSwitch"
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ size = "sm" }: { size?: "sm" | "lg" }) {
   const { resolvedTheme, setTheme } = useTheme()
   const dark = resolvedTheme === "dark"
 
@@ -11,7 +11,7 @@ export default function ThemeToggle() {
     <LightsSwitch
       on={dark}
       onClick={() => setTheme(dark ? "light" : "dark")}
-      size="sm"
+      size={size}
     />
   )
 }

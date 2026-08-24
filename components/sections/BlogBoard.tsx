@@ -26,6 +26,7 @@ export default function BlogBoard({ posts }: { posts: BlogPost[] }) {
       meta={`${posts.length} POSTED`}
       height={Math.max(height, pinBottom)}
       stickyRotate={-2.2}
+      backHref="/"
     >
       {placements.map((pl, i) => {
         const p = posts[i];

@@ -30,14 +30,13 @@ export default function AboutBoard() {
           rotate={-0.6}
           pinStyle="two-pin"
           curl={26}
+          className="cork-sheet"
           style={{
-            background: "var(--cork-paper)",
-            backgroundImage: "linear-gradient(180deg, rgba(255,255,255,0.5), rgba(0,0,0,0.02))",
             padding: "34px 36px 30px",
             boxShadow: "0 1px 1px rgba(0,0,0,0.16), 0 14px 26px rgba(50,30,10,0.28)",
           }}
         >
-          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.18em", color: "#8a6a3d", marginBottom: 14 }}>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: "0.18em", color: "var(--cork-ink3)", marginBottom: 14 }}>
             ABOUT
           </div>
           <div style={{ fontFamily: MONO, fontSize: 14, lineHeight: 1.95, color: "var(--cork-ink2)", textWrap: "pretty" }}>

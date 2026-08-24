@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import Link from "next/link"
-import { ArrowLeft, ExternalLink } from "lucide-react"
+import { ExternalLink } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { getAllProjects, getProjectBySlug } from "@/lib/projects"
 import { splitSheets, estimateSheetHeight } from "@/lib/sheets"
@@ -11,7 +10,9 @@ import BoardFrame from "@/components/board/BoardFrame"
 import StapledSheet from "@/components/board/StapledSheet"
 import PinnedAttachment from "@/components/board/PinnedAttachment"
 import BoardSwitch from "@/components/board/BoardSwitch"
+import BoardStage, { MobileChrome } from "@/components/board/BoardStage"
 import GithubIcon from "@/components/ui/GithubIcon"
+import { mdxComponents } from "@/components/mdx"
 import type { Project } from "@/lib/projects"
 
 export async function generateStaticParams() {
@@ -49,7 +50,7 @@ export default async function ProjectPage({
   let y = 66
   const laid = sheets.map((s, i) => {
     const at = y
-    y += estimateSheetHeight(s) + 34
+    y += estimateSheetHeight(s, 864, i === 0 ? 240 : 0) + 56
     return { sheet: s, y: at, x: 160 + ((i * 17) % 36), rotate: rotationFor(slug + i, 0.9) }
   })
 
@@ -58,64 +59,62 @@ export default async function ProjectPage({
   return (
     <BoardSwitch
       board={
-        <main className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 pt-28 pb-24">
-          <BoardFrame title={meta.title} height={height} stickyRotate={-2.4} clip>
-            <div style={{ position: "absolute", left: 46, top: 24, fontFamily: MONO, fontSize: 12, letterSpacing: "0.12em", color: "rgba(255,244,224,0.8)", zIndex: 6 }}>
-              <Link href="/projects" style={{ color: "inherit", textDecoration: "none" }}>
-                ← ALL PROJECTS / EXPERIENCE
-              </Link>
+        <main className="mx-auto w-full max-w-[1280px] px-4 sm:px-6 pt-12 pb-24">
+          <BoardStage>
+          <BoardFrame title={meta.title} height={height} stickyRotate={-2.4} fit backHref="/projects">
+            <div style={{ paddingTop: 66, paddingBottom: 72 }}>
+              {laid.map((l, i) => (
+                <StapledSheet
+                  key={i}
+                  board={board}
+                  id={`sheet-${i}`}
+                  x={l.x}
+                  y={0}
+                  rotate={l.rotate}
+                  flow
+                  eyebrow={i === 0 ? `PROJECT · WRITE-UP` : l.sheet.eyebrow}
+                  heading={i === 0 ? undefined : l.sheet.heading}
+                  page={i + 1}
+                  pages={laid.length}
+                  lead={
+                    i === 0 ? (
+                      <>
+                        <div style={{ margin: "16px 0 0", fontFamily: "Excalifont, cursive", fontSize: 40, lineHeight: 1.14, color: "var(--cork-ink)" }}>
+                          {meta.title}
+                        </div>
+                        <div style={{ margin: "16px 0 20px", fontFamily: MONO, fontSize: 13.5, lineHeight: 1.85, color: "var(--cork-ink2)" }}>
+                          {meta.description}
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginBottom: 24, fontFamily: MONO, fontSize: 11, color: "var(--cork-ink3)", letterSpacing: "0.06em" }}>
+                          {meta.tech.map((t) => (
+                            <span key={t}>[ {t} ]</span>
+                          ))}
+                        </div>
+                        <div style={{ display: "flex", gap: 24, paddingTop: 14, borderTop: "1px solid var(--cork-rule)", fontFamily: MONO, fontSize: 12, letterSpacing: "0.1em", color: "var(--cork-ink)" }}>
+                          {meta.githubUrl && (
+                            <a href={meta.githubUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>VIEW ON GITHUB →</a>
+                          )}
+                          {meta.liveUrl && (
+                            <a href={meta.liveUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>LIVE SITE ↗</a>
+                          )}
+                        </div>
+                      </>
+                    ) : undefined
+                  }
+                >
+                  {i === 0 && l.sheet.heading ? (
+                    <h2>{l.sheet.heading}</h2>
+                  ) : null}
+                  {l.sheet.body ? <MDXRemote source={l.sheet.body} components={mdxComponents} /> : null}
+                </StapledSheet>
+              ))}
             </div>
 
-            {laid.map((l, i) => (
-              <StapledSheet
-                key={i}
-                board={board}
-                id={`sheet-${i}`}
-                x={l.x}
-                y={l.y}
-                rotate={l.rotate}
-                eyebrow={i === 0 ? `PROJECT · WRITE-UP` : l.sheet.eyebrow}
-                heading={i === 0 ? undefined : l.sheet.heading}
-                page={i + 1}
-                pages={laid.length}
-                fade={i === laid.length - 1}
-                lead={
-                  i === 0 ? (
-                    <>
-                      <div style={{ margin: "16px 0 0", fontFamily: "Excalifont, cursive", fontSize: 40, lineHeight: 1.14, color: "var(--cork-ink)" }}>
-                        {meta.title}
-                      </div>
-                      <div style={{ margin: "16px 0 20px", fontFamily: MONO, fontSize: 13.5, lineHeight: 1.85, color: "var(--cork-ink2)" }}>
-                        {meta.description}
-                      </div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginBottom: 24, fontFamily: MONO, fontSize: 11, color: "#6b563c", letterSpacing: "0.06em" }}>
-                        {meta.tech.map((t) => (
-                          <span key={t}>[ {t} ]</span>
-                        ))}
-                      </div>
-                      <div style={{ display: "flex", gap: 24, paddingTop: 14, borderTop: "1px solid rgba(52,40,24,0.22)", fontFamily: MONO, fontSize: 12, letterSpacing: "0.1em", color: "var(--cork-ink)" }}>
-                        {meta.githubUrl && (
-                          <a href={meta.githubUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>VIEW ON GITHUB →</a>
-                        )}
-                        {meta.liveUrl && (
-                          <a href={meta.liveUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>LIVE SITE ↗</a>
-                        )}
-                      </div>
-                    </>
-                  ) : undefined
-                }
-              >
-                {i === 0 && l.sheet.heading ? (
-                  <h2>{l.sheet.heading}</h2>
-                ) : null}
-                {l.sheet.body ? <MDXRemote source={l.sheet.body} /> : null}
-              </StapledSheet>
-            ))}
-
             {pins.map((pin) => (
-              <PinnedAttachment key={pin.id} board={board} pin={pin} draggable={false} />
+              <PinnedAttachment key={pin.id} board={board} pin={pin} />
             ))}
           </BoardFrame>
+          </BoardStage>
         </main>
       }
       fallback={<ProjectArticle meta={meta} content={content} />}
@@ -125,14 +124,8 @@ export default async function ProjectPage({
 
 function ProjectArticle({ meta, content }: { meta: Project; content: string }) {
   return (
-    <main className="max-w-2xl mx-auto px-4 sm:px-6 pt-28 pb-24">
-      <Link
-        href="/projects"
-        className="inline-flex items-center gap-1.5 text-sm text-neutral-800 hover:text-neutral-950 dark:hover:text-neutral-100 mb-10 transition-colors"
-      >
-        <ArrowLeft size={14} />
-        All projects/experience
-      </Link>
+    <main className="max-w-2xl mx-auto px-4 sm:px-6 pt-12 pb-24">
+      <MobileChrome backHref="/projects" backLabel="All projects/experience" />
 
       <header className="mb-8">
         <h1 className="text-4xl font-bold text-neutral-950 dark:text-neutral-100 mb-3">
@@ -180,7 +173,7 @@ function ProjectArticle({ meta, content }: { meta: Project; content: string }) {
       </header>
 
       <article className="prose prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-base prose-neutral dark:prose-invert max-w-none prose-a:text-blue-800 dark:prose-a:text-blue-500 prose-headings:font-semibold prose-headings:text-neutral-950 dark:prose-headings:text-neutral-100 prose-p:text-neutral-800 dark:prose-p:text-neutral-400 prose-li:text-neutral-800 dark:prose-p:text-neutral-400 prose-code:text-neutral-950 dark:prose-code:text-neutral-200 prose-pre:bg-[var(--chip)]">
-        <MDXRemote source={content} />
+        <MDXRemote source={content} components={mdxComponents} />
       </article>
     </main>
   )

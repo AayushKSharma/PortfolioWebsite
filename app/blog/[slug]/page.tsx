@@ -1,7 +1,5 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
 import { MDXRemote } from "next-mdx-remote/rsc"
 import { getAllPosts, getPostBySlug } from "@/lib/blog"
 import { splitSheets, estimateSheetHeight } from "@/lib/sheets"
@@ -11,6 +9,8 @@ import BoardFrame from "@/components/board/BoardFrame"
 import StapledSheet from "@/components/board/StapledSheet"
 import PinnedAttachment from "@/components/board/PinnedAttachment"
 import BoardSwitch from "@/components/board/BoardSwitch"
+import BoardStage, { MobileChrome } from "@/components/board/BoardStage"
+import { mdxComponents } from "@/components/mdx"
 import type { BlogPost } from "@/lib/blog"
 
 export async function generateStaticParams() {
@@ -52,7 +52,7 @@ export default async function BlogPostPage({
   let y = 66
   const laid = sheets.map((s, i) => {
     const at = y
-    y += estimateSheetHeight(s) + 34
+    y += estimateSheetHeight(s, 864, i === 0 ? 240 : 0) + 56
     return { sheet: s, y: at, x: 160 + ((i * 17) % 36), rotate: rotationFor(slug + i, 0.9) }
   })
 
@@ -61,49 +61,49 @@ export default async function BlogPostPage({
   return (
     <BoardSwitch
       board={
-        <main className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 pt-28 pb-24">
-          <BoardFrame title={meta.title} height={height} stickyRotate={2.2} clip>
-            <div style={{ position: "absolute", left: 46, top: 24, fontFamily: MONO, fontSize: 12, letterSpacing: "0.12em", color: "rgba(255,244,224,0.8)", zIndex: 6 }}>
-              <Link href="/blog" style={{ color: "inherit", textDecoration: "none" }}>← ALL POSTS</Link>
+        <main className="mx-auto w-full max-w-[1280px] px-4 sm:px-6 pt-12 pb-24">
+          <BoardStage>
+          <BoardFrame title={meta.title} height={height} stickyRotate={2.2} fit backHref="/blog">
+            <div style={{ paddingTop: 66, paddingBottom: 72 }}>
+              {laid.map((l, i) => (
+                <StapledSheet
+                  key={i}
+                  board={board}
+                  id={`sheet-${i}`}
+                  x={l.x}
+                  y={0}
+                  rotate={l.rotate}
+                  flow
+                  eyebrow={i === 0 ? "POST" : l.sheet.eyebrow}
+                  heading={i === 0 ? undefined : l.sheet.heading}
+                  page={i + 1}
+                  pages={laid.length}
+                  lead={
+                    i === 0 ? (
+                      <>
+                        <div style={{ margin: "16px 0 0", fontFamily: "Excalifont, cursive", fontSize: 40, lineHeight: 1.14, color: "var(--cork-ink)" }}>
+                          {meta.title}
+                        </div>
+                        <div style={{ display: "flex", gap: 18, margin: "16px 0 20px", fontFamily: MONO, fontSize: 11, letterSpacing: "0.1em", color: "var(--cork-ink3)" }}>
+                          <span>{date}</span>
+                          {meta.tags.map((t) => (
+                            <span key={t}>[ {t} ]</span>
+                          ))}
+                        </div>
+                      </>
+                    ) : undefined
+                  }
+                >
+                  <MDXRemote source={l.sheet.body} components={mdxComponents} />
+                </StapledSheet>
+              ))}
             </div>
 
-            {laid.map((l, i) => (
-              <StapledSheet
-                key={i}
-                board={board}
-                id={`sheet-${i}`}
-                x={l.x}
-                y={l.y}
-                rotate={l.rotate}
-                eyebrow={i === 0 ? "POST" : l.sheet.eyebrow}
-                heading={i === 0 ? undefined : l.sheet.heading}
-                page={i + 1}
-                pages={laid.length}
-                fade={i === laid.length - 1}
-                lead={
-                  i === 0 ? (
-                    <>
-                      <div style={{ margin: "16px 0 0", fontFamily: "Excalifont, cursive", fontSize: 40, lineHeight: 1.14, color: "var(--cork-ink)" }}>
-                        {meta.title}
-                      </div>
-                      <div style={{ display: "flex", gap: 18, margin: "16px 0 20px", fontFamily: MONO, fontSize: 11, letterSpacing: "0.1em", color: "#8a6a3d" }}>
-                        <span>{date}</span>
-                        {meta.tags.map((t) => (
-                          <span key={t}>[ {t} ]</span>
-                        ))}
-                      </div>
-                    </>
-                  ) : undefined
-                }
-              >
-                <MDXRemote source={l.sheet.body} />
-              </StapledSheet>
-            ))}
-
             {pins.map((pin) => (
-              <PinnedAttachment key={pin.id} board={board} pin={pin} draggable={false} />
+              <PinnedAttachment key={pin.id} board={board} pin={pin} />
             ))}
           </BoardFrame>
+          </BoardStage>
         </main>
       }
       fallback={<BlogArticle meta={meta} content={content} date={date} />}
@@ -121,14 +121,8 @@ function BlogArticle({
   date: string
 }) {
   return (
-    <main className="max-w-2xl mx-auto px-4 sm:px-6 pt-28 pb-24">
-      <Link
-        href="/blog"
-        className="inline-flex items-center gap-1.5 text-sm text-neutral-800 hover:text-neutral-950 dark:hover:text-neutral-100 mb-10 transition-colors"
-      >
-        <ArrowLeft size={14} />
-        All posts
-      </Link>
+    <main className="max-w-2xl mx-auto px-4 sm:px-6 pt-12 pb-24">
+      <MobileChrome backHref="/blog" backLabel="All posts" />
 
       <header className="mb-10">
         <div className="flex items-center gap-3 mb-4">
@@ -148,7 +142,7 @@ function BlogArticle({
       </header>
 
       <article className="prose prose-neutral dark:prose-invert max-w-none prose-a:text-blue-800 dark:prose-a:text-blue-500 prose-headings:font-semibold prose-headings:text-neutral-950 dark:prose-headings:text-neutral-100 prose-p:text-neutral-800 dark:prose-p:text-neutral-400 prose-li:text-neutral-800 dark:prose-li:text-neutral-400 prose-code:text-neutral-950 dark:prose-code:text-neutral-200 prose-pre:bg-[var(--chip)]">
-        <MDXRemote source={content} />
+        <MDXRemote source={content} components={mdxComponents} />
       </article>
     </main>
   )

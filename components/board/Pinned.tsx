@@ -140,8 +140,10 @@ export default function Pinned({
   pinColor = "var(--pin-red)",
   curl = 0,
   draggable = true,
+  flow = false,
   zIndex,
   href,
+  className,
   style,
   children,
 }: {
@@ -156,8 +158,11 @@ export default function Pinned({
   /** resting size of the curled corner in px; 0 = none */
   curl?: number;
   draggable?: boolean;
+  /** in-flow stacking for slug write-up pages (no overlap from guessed heights) */
+  flow?: boolean;
   zIndex?: number;
   href?: string;
+  className?: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
 }) {
@@ -290,7 +295,7 @@ export default function Pinned({
             bottom: 0,
             width: curl,
             height: curl,
-            backgroundImage: "linear-gradient(315deg, #a4753d 0%, #f2ead6 46%, #cfc4a7 100%)",
+            backgroundImage: "var(--cork-curl)",
             boxShadow: "-4px -4px 10px rgba(20,10,0,0.4)",
             pointerEvents: "none",
           }}
@@ -300,9 +305,11 @@ export default function Pinned({
   );
 
   const shell: React.CSSProperties = {
-    position: "absolute",
-    left: x,
-    top: y,
+    position: flow ? "relative" : "absolute",
+    left: flow ? undefined : x,
+    top: flow ? undefined : y,
+    marginLeft: flow ? x : undefined,
+    marginBottom: flow ? 56 : undefined,
     width,
     rotate: `${rotate}deg`,
     touchAction: draggable ? "none" : undefined,
@@ -314,10 +321,19 @@ export default function Pinned({
   };
 
   return (
-    <div ref={ref} data-board={board} data-pinned={id} style={shell} className="cork-lift">
+    <div
+      ref={ref}
+      data-board={board}
+      data-pinned={id}
+      style={shell}
+      className={["cork-lift", className].filter(Boolean).join(" ")}
+    >
       {href ? (
         <a
           href={href}
+          {...(href.toLowerCase().includes(".pdf")
+            ? { target: "_blank", rel: "noopener noreferrer" }
+            : {})}
           draggable={false}
           onDragStart={(e) => e.preventDefault()}
           style={{

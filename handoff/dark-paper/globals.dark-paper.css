@@ -1,0 +1,137 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   DARK-MODE PAPER + ROUGH STOCK TEXTURE
+   Paste over the existing board-token block in app/globals.css.
+
+   Two rules of thumb this file follows:
+   1. --cork-paper stays a FLAT colour, because it appears inside
+      linear-gradient() in StapledSheet where a layered value is invalid.
+      --cork-paper-bg is the layered, textured value for `background:`.
+   2. The turbulence lives in real .svg files under public/board/. Inline
+      data-URI SVG gets its camelCase attributes (baseFrequency, numOctaves)
+      mangled by some CSS pipelines, which silently flattens the grain to a
+      solid grey — the failure is invisible until you diff pixels.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* paper + ink */
+  --cork-paper: #f6efdd;          /* flat colour, gradient-safe */
+  --cork-ink: #2a2117;            /* headings, handwriting */
+  --cork-ink2: #3f3428;           /* body copy */
+  --cork-ink3: #6b563c;           /* kickers, meta, counters */
+  --cork-rule: rgba(52, 40, 24, 0.22);
+  --cork-rule-strong: rgba(52, 40, 24, 0.28);
+  --cork-hairline: rgba(52, 40, 24, 0.12);
+
+  /* sticky-note titles */
+  --sticky: #f5e488;
+  --sticky-2: #ecd66d;
+  --sticky-ink: #3a3116;
+
+  /* attachment mount board + art well */
+  --cork-mount: #fdfcf7;
+  --cork-art: #f3f1ea;
+
+  /* dog-ear + fade */
+  --cork-dogear: linear-gradient(226deg, #b9ad90 0%, #ded4bb 42%, var(--cork-paper) 100%);
+  --cork-curl: linear-gradient(315deg, #a4753d 0%, #f2ead6 46%, #cfc4a7 100%);
+  --cork-fade: linear-gradient(180deg, rgba(246, 239, 221, 0) 0%, var(--cork-paper) 72%);
+
+  /* rough-stock texture */
+  --paper-noise: url("/board/paper-noise-medium.svg");
+  --paper-grain: 0.055;
+  --paper-fiber: 0.03;
+  --paper-blotch: 0.05;
+  --cork-paper-bg:
+    var(--paper-noise),
+    linear-gradient(0deg, rgba(150,120,72,var(--paper-grain)), rgba(150,120,72,var(--paper-grain))),
+    repeating-linear-gradient(97deg, rgba(96,74,42,var(--paper-fiber)) 0 1px, rgba(0,0,0,0) 1px 4px),
+    repeating-linear-gradient(6deg, rgba(96,74,42,var(--paper-fiber)) 0 1px, rgba(0,0,0,0) 1px 5px),
+    radial-gradient(120% 90% at 14% 8%, rgba(255,255,255,0.5) 0%, rgba(0,0,0,0) 55%),
+    radial-gradient(90% 70% at 88% 96%, rgba(104,80,44,var(--paper-blotch)) 0%, rgba(0,0,0,0) 60%),
+    var(--cork-paper);
+
+  --pin-red: #c0392b;
+  --cork-grime: 0.85;
+}
+
+/* ── dark mode: near-black kraft, amber ink ──────────────────────────────
+   Body ink is deliberately one step softer than pure cream (#bda98a rather
+   than #ead9b3) so long reads on a near-black sheet stay comfortable;
+   --cork-ink keeps the brighter value for headings and handwriting. */
+.dark {
+  --cork-paper: #16130e;
+  --cork-ink: #ead9b3;
+  --cork-ink2: #bda98a;
+  --cork-ink3: #8a7245;
+  --cork-rule: rgba(234, 217, 179, 0.16);
+  --cork-rule-strong: rgba(234, 217, 179, 0.24);
+  --cork-hairline: rgba(240, 224, 189, 0.12);
+
+  --sticky: #9c7c1c;
+  --sticky-2: #866a12;
+  --sticky-ink: #1d1602;
+
+  --cork-mount: #201c15;
+  --cork-art: #15120d;
+
+  --cork-dogear: linear-gradient(226deg, #4a3d2a 0%, #2b2419 42%, var(--cork-paper) 100%);
+  --cork-curl: linear-gradient(315deg, #4a3d2a 0%, #2b2419 46%, #100e0a 100%);
+  --cork-fade: linear-gradient(180deg, rgba(22, 19, 14, 0) 0%, var(--cork-paper) 72%);
+
+  /* On dark stock the fibers catch light instead of shadow, so the grain
+     layers invert from brown-on-cream to cream-on-black. */
+  --paper-grain: 0.075;
+  --paper-fiber: 0.035;
+  --paper-blotch: 0.07;
+  --cork-paper-bg:
+    var(--paper-noise),
+    linear-gradient(0deg, rgba(226,206,166,var(--paper-grain)), rgba(226,206,166,var(--paper-grain))),
+    repeating-linear-gradient(97deg, rgba(240,224,189,var(--paper-fiber)) 0 1px, rgba(0,0,0,0) 1px 4px),
+    repeating-linear-gradient(6deg, rgba(240,224,189,var(--paper-fiber)) 0 1px, rgba(0,0,0,0) 1px 5px),
+    radial-gradient(120% 90% at 14% 8%, rgba(255,238,205,0.055) 0%, rgba(0,0,0,0) 55%),
+    radial-gradient(90% 70% at 88% 96%, rgba(255,232,190,var(--paper-blotch)) 0%, rgba(0,0,0,0) 60%),
+    var(--cork-paper);
+}
+
+/* Every sheet needs this alongside `background: var(--cork-paper-bg)` so the
+   noise tile stays 180px while the gradient layers stretch. Applied via class
+   rather than inline so it can't fall out of sync with the layer count. */
+.cork-sheet {
+  background: var(--cork-paper-bg);
+  background-size: 180px 180px, auto, auto, auto, auto, auto, auto;
+}
+
+/* ── cork in dark mode ───────────────────────────────────────────────────
+   One wash on top, desaturating toward grey rather than only darkening.
+   Do NOT use filter on .cork-panel — filter makes overflow:visible clip,
+   so hanging flyers vanish under the wall. The grain sits under the wash;
+   above it, mid-grey turbulence milks the board instead of aging it. */
+.dark .cork-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: rgba(38, 36, 33, 0.66);
+}
+
+/* prose + chrome in dark mode */
+.dark .cork-prose code,
+.dark .cork-prose pre { background: rgba(240, 224, 189, 0.07); }
+.dark .cork-prose hr { border-top-color: var(--cork-rule); }
+.dark .cork-prose a:hover { color: #f0c4b0; }
+.dark .cork-lift:hover {
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5), 0 32px 52px rgba(0, 0, 0, 0.62) !important;
+}
+.dark .cork-lift:hover .cork-curl { box-shadow: -11px -11px 22px rgba(0, 0, 0, 0.55); }
+
+/* ── prose (unchanged except the tokens it now reads) ────────────────────── */
+.cork-prose { color: var(--cork-ink2); }
+.cork-prose h1,
+.cork-prose h2,
+.cork-prose h3,
+.cork-prose strong,
+.cork-prose a { color: var(--cork-ink); }
+.cork-prose code,
+.cork-prose pre { background: rgba(52, 40, 24, 0.09); }
+.cork-prose hr { border: 0; border-top: 1px solid var(--cork-rule); margin: 20px 0; }

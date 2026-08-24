@@ -1,5 +1,6 @@
 // components/board/BoardFrame.tsx — aluminium frame, cork panel, sticky title.
 
+import Link from "next/link";
 import { BOARD_W, FRAME } from "@/lib/board";
 import BoardScaler from "./BoardScaler";
 
@@ -16,6 +17,8 @@ export default function BoardFrame({
   height,
   stickyRotate = -2.2,
   clip = false,
+  fit = false,
+  backHref,
   children,
 }: {
   /** handwritten sticky-note title, flush with the frame's top edge */
@@ -25,8 +28,12 @@ export default function BoardFrame({
   /** cork panel height in board px */
   height: number;
   stickyRotate?: number;
-  /** slug boards clip; section boards let art hang over the edge */
+  /** if true, hide paper that hangs past the cork (section boards leave this off) */
   clip?: boolean;
+  /** let in-flow sheets grow the cork instead of a fixed height */
+  fit?: boolean;
+  /** back arrow on the sticky note */
+  backHref?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -39,13 +46,15 @@ export default function BoardFrame({
           backgroundImage: "linear-gradient(180deg, #c8ccd0 0%, #9aa0a6 42%, #7f858c 100%)",
           boxShadow: "0 20px 44px rgba(50,30,10,0.34)",
           boxSizing: "border-box",
+          overflow: "visible",
         }}
       >
         <div
           className="cork-panel"
           style={{
             position: "relative",
-            height,
+            height: fit ? undefined : height,
+            minHeight: height,
             borderRadius: 2,
             boxShadow: "inset 0 0 0 2px rgba(0,0,0,0.32), inset 0 0 110px rgba(30,14,0,0.4)",
             backgroundColor: "#a4753d",
@@ -64,20 +73,25 @@ export default function BoardFrame({
               position: "absolute",
               left: 44,
               top: -FRAME,
-              width: 158,
-              height: 158,
+              width: backHref ? 168 : 158,
+              height: backHref ? 176 : 158,
               rotate: `${stickyRotate}deg`,
-              backgroundColor: "#f5e488",
-              backgroundImage: "linear-gradient(184deg, #f8ea9c 0%, #ecd66d 100%)",
+              backgroundColor: "var(--sticky)",
+              backgroundImage: "linear-gradient(184deg, rgba(255,255,255,0.24) 0%, var(--sticky-2) 100%)",
               boxShadow: "0 2px 3px rgba(20,10,0,0.26), 10px 18px 28px rgba(20,10,0,0.34)",
               display: "flex",
               alignItems: "flex-end",
-              padding: 18,
+              padding: backHref ? "40px 16px 16px" : 18,
               boxSizing: "border-box",
-              zIndex: 5,
+              zIndex: 12,
             }}
           >
-            <div style={{ fontFamily: "Excalifont, cursive", fontSize: title.length > 18 ? 25 : 28, lineHeight: 1.13, color: "#3a3116" }}>
+            {backHref && (
+              <Link href={backHref} aria-label="Back" className="cork-back">
+                ←
+              </Link>
+            )}
+            <div style={{ fontFamily: "Excalifont, cursive", fontSize: title.length > 18 ? 25 : 28, lineHeight: 1.13, color: "var(--sticky-ink)" }}>
               {title}
             </div>
           </div>

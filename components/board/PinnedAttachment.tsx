@@ -33,18 +33,19 @@ export default function PinnedAttachment({
       draggable={draggable}
       href={a.file}
       zIndex={8}
+      className={isSheet ? undefined : "cork-sheet"}
       style={{
-        background: isSheet ? "#fdfcf7" : "var(--cork-paper)",
+        background: isSheet ? "var(--cork-mount)" : undefined,
         padding: isSheet ? "12px 12px 0" : "10px 10px 4px",
         boxShadow: "0 1px 1px rgba(0,0,0,0.2), 0 18px 32px rgba(20,10,0,0.44)",
       }}
     >
-      <div style={{ position: "relative", width: artW, height: artH, background: "#f3f1ea", boxShadow: "inset 0 0 0 1px rgba(52,40,24,0.12)" }}>
+      <div style={{ position: "relative", width: artW, height: artH, background: "var(--cork-art)", boxShadow: "inset 0 0 0 1px var(--cork-hairline)" }}>
         <Image src={a.src} alt={a.alt} fill sizes={`${artW}px`} draggable={false} style={{ objectFit: "cover" }} />
       </div>
 
       {isSheet ? (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "10px 2px 12px", fontFamily: MONO, fontSize: 10, letterSpacing: "0.12em", color: "#8a6a3d" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "10px 2px 12px", fontFamily: MONO, fontSize: 10, letterSpacing: "0.12em", color: "var(--cork-ink3)" }}>
           <span>{a.label}</span>
           <span>{a.pages === 1 ? "1 PAGE" : `${a.pages ?? 1} PAGES`}</span>
         </div>

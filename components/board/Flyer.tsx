@@ -23,6 +23,7 @@ export default function Flyer({
   footerRight,
   href,
   figure,
+  figureSrc,
   featured = false,
 }: {
   board: string;
@@ -42,6 +43,8 @@ export default function Flyer({
   href: string;
   /** caption for the figure block on featured flyers */
   figure?: string;
+  /** image shown in the figure slot; sized with object-fit, never stretched */
+  figureSrc?: string;
   featured?: boolean;
 }) {
   const pad = featured ? "32px 34px 30px" : "26px 26px 22px";
@@ -83,8 +86,36 @@ export default function Flyer({
         </div>
         {figure && (
           <div style={{ width: 200, flex: "0 0 200px" }}>
-            <div style={{ height: 118, backgroundColor: "#cdc6b6", backgroundImage: "repeating-linear-gradient(115deg, rgba(255,255,255,0.5) 0 2px, rgba(255,255,255,0) 2px 5px), linear-gradient(160deg, #d6d0c0, #b2ab9a)", display: "flex", alignItems: "flex-end", padding: 8, boxSizing: "border-box", fontFamily: MONO, fontSize: 9.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.9)" }}>
-              SCREENSHOT
+            <div
+              style={{
+                height: 160,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+              }}
+            >
+              {figureSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={figureSrc}
+                  alt="AOTW logo"
+                  draggable={false}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    width: "auto",
+                    height: "auto",
+                    objectFit: "contain",
+                    objectPosition: "center",
+                    display: "block",
+                  }}
+                />
+              ) : (
+                <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: "0.1em", color: "#8a6a3d", alignSelf: "flex-end" }}>
+                  SCREENSHOT
+                </div>
+              )}
             </div>
             <div style={{ marginTop: 7, fontFamily: MONO, fontSize: 10, color: "#8a6a3d", letterSpacing: "0.06em" }}>{figure}</div>
           </div>

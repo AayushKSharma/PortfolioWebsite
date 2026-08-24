@@ -58,7 +58,8 @@ export default function ProjectsBoard({ projects }: { projects: Project[] }) {
             title={p.title}
             body={p.description}
             chips={featured ? p.tech.slice(0, 6) : p.tech.slice(0, 3)}
-            figure={featured ? "fig. 1 — the decision wheel" : undefined}
+            figure={featured && p.slug === "aotw" ? "fig. 1 — aotw" : featured ? "fig. 1 — screenshot" : undefined}
+            figureSrc={featured && p.slug === "aotw" ? "/board/sheets/aotw-logo.png" : undefined}
             footer={featured ? "READ THE WRITE-UP →" : "READ MORE →"}
             footerRight={p.liveUrl ? p.liveUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") : undefined}
             href={`/projects/${p.slug}`}

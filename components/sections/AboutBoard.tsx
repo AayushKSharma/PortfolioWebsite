@@ -79,7 +79,7 @@ export default function AboutBoard() {
           }}
         >
           <div style={{ fontFamily: "Excalifont, cursive", fontSize: 19, lineHeight: 1.45, color: "#2c3540" }}>
-            currently: Brawl Stars &amp; an Obsidian clone
+            currently: re-reading Hunter x Hunter &amp; working on an Obsidian clone
           </div>
         </Pinned>
 

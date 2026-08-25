@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-/** CSS split so phones keep the existing list/article layouts. */
+/** CSS split for layouts that still keep a non-board fallback (slug write-ups). */
 export default function BoardSwitch({
   board,
   fallback,

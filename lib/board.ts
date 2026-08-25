@@ -11,6 +11,11 @@ export const ROW_GAP = 32;
 export const TOP = 138;             // first row sits below the sticky title
 export const BOTTOM_PAD = 56;
 
+/** Phone cork board — native CSS px, not a scaled-down 1180 artboard. */
+export const MOBILE_FRAME = 8;
+export const MOBILE_PAD = 20;
+export const MOBILE_TOP = 176;      // clear of the title sticky (one column)
+
 export type Span = 1 | 2 | 3;
 
 export const spanWidth = (span: Span) => COL_W * span + GUTTER * (span - 1);

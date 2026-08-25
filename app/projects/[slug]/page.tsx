@@ -1,19 +1,10 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { ExternalLink } from "lucide-react"
-import { MDXRemote } from "next-mdx-remote/rsc"
 import { getAllProjects, getProjectBySlug } from "@/lib/projects"
-import { splitSheets, estimateSheetHeight } from "@/lib/sheets"
-import { pinsFor, pinHeight } from "@/lib/boardAttachments"
-import { rotationFor } from "@/lib/board"
-import BoardFrame from "@/components/board/BoardFrame"
-import StapledSheet from "@/components/board/StapledSheet"
-import PinnedAttachment from "@/components/board/PinnedAttachment"
-import BoardSwitch from "@/components/board/BoardSwitch"
-import BoardStage, { MobileChrome } from "@/components/board/BoardStage"
-import GithubIcon from "@/components/ui/GithubIcon"
-import { mdxComponents } from "@/components/mdx"
-import type { Project } from "@/lib/projects"
+import { splitSheets } from "@/lib/sheets"
+import { pinsFor } from "@/lib/boardAttachments"
+import BoardStage from "@/components/board/BoardStage"
+import WriteupBoard from "@/components/sections/WriteupBoard"
 
 export async function generateStaticParams() {
   const projects = await getAllProjects()
@@ -47,134 +38,45 @@ export default async function ProjectPage({
   const board = `project:${slug}`
   const pins = pinsFor(board)
 
-  let y = 66
-  const laid = sheets.map((s, i) => {
-    const at = y
-    y += estimateSheetHeight(s, 864, i === 0 ? 240 : 0) + 56
-    return { sheet: s, y: at, x: 160 + ((i * 17) % 36), rotate: rotationFor(slug + i, 0.9) }
-  })
-
-  const height = Math.max(y + 40, ...pins.map((p) => p.y + pinHeight(p) + 44))
-
   return (
-    <BoardSwitch
-      board={
-        <main className="mx-auto w-full max-w-[1280px] px-4 sm:px-6 pt-12 pb-24">
-          <BoardStage>
-          <BoardFrame title={meta.title} height={height} stickyRotate={-2.4} fit backHref="/projects">
-            <div style={{ paddingTop: 66, paddingBottom: 72 }}>
-              {laid.map((l, i) => (
-                <StapledSheet
-                  key={i}
-                  board={board}
-                  id={`sheet-${i}`}
-                  x={l.x}
-                  y={0}
-                  rotate={l.rotate}
-                  flow
-                  eyebrow={i === 0 ? `PROJECT · WRITE-UP` : l.sheet.eyebrow}
-                  heading={i === 0 ? undefined : l.sheet.heading}
-                  page={i + 1}
-                  pages={laid.length}
-                  lead={
-                    i === 0 ? (
-                      <>
-                        <div style={{ margin: "16px 0 0", fontFamily: "Excalifont, cursive", fontSize: 40, lineHeight: 1.14, color: "var(--cork-ink)" }}>
-                          {meta.title}
-                        </div>
-                        <div style={{ margin: "16px 0 20px", fontFamily: MONO, fontSize: 13.5, lineHeight: 1.85, color: "var(--cork-ink2)" }}>
-                          {meta.description}
-                        </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginBottom: 24, fontFamily: MONO, fontSize: 11, color: "var(--cork-ink3)", letterSpacing: "0.06em" }}>
-                          {meta.tech.map((t) => (
-                            <span key={t}>[ {t} ]</span>
-                          ))}
-                        </div>
-                        <div style={{ display: "flex", gap: 24, paddingTop: 14, borderTop: "1px solid var(--cork-rule)", fontFamily: MONO, fontSize: 12, letterSpacing: "0.1em", color: "var(--cork-ink)" }}>
-                          {meta.githubUrl && (
-                            <a href={meta.githubUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>VIEW ON GITHUB →</a>
-                          )}
-                          {meta.liveUrl && (
-                            <a href={meta.liveUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>LIVE SITE ↗</a>
-                          )}
-                        </div>
-                      </>
-                    ) : undefined
-                  }
-                >
-                  {i === 0 && l.sheet.heading ? (
-                    <h2>{l.sheet.heading}</h2>
-                  ) : null}
-                  {l.sheet.body ? <MDXRemote source={l.sheet.body} components={mdxComponents} /> : null}
-                </StapledSheet>
-              ))}
-            </div>
-
-            {pins.map((pin) => (
-              <PinnedAttachment key={pin.id} board={board} pin={pin} />
-            ))}
-          </BoardFrame>
-          </BoardStage>
-        </main>
-      }
-      fallback={<ProjectArticle meta={meta} content={content} />}
-    />
-  )
-}
-
-function ProjectArticle({ meta, content }: { meta: Project; content: string }) {
-  return (
-    <main className="max-w-2xl mx-auto px-4 sm:px-6 pt-12 pb-24">
-      <MobileChrome backHref="/projects" backLabel="All projects/experience" />
-
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold text-neutral-950 dark:text-neutral-100 mb-3">
-          {meta.title}
-        </h1>
-        <p className="text-neutral-800 dark:text-neutral-400 mb-6 leading-relaxed">
-          {meta.description}
-        </p>
-
-        <div className="flex flex-wrap gap-2 mb-6">
-          {meta.tech.map((t) => (
-            <span
-              key={t}
-              className="text-sm px-3 py-1 rounded-full bg-[var(--chip)] text-neutral-900 dark:text-neutral-300"
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-
-        <div className="flex gap-3">
-          {meta.githubUrl && (
-            <a
-              href={meta.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--island-border)] text-sm text-neutral-900 dark:text-neutral-300 hover:border-[var(--island-border-hover)] transition-colors"
-            >
-              <GithubIcon size={15} />
-              View on GitHub
-            </a>
+    <main className="mx-auto w-full max-w-[1280px] px-[14px] sm:px-6 pt-8 sm:pt-12 pb-24">
+      <BoardStage>
+        <WriteupBoard
+          board={board}
+          title={meta.title}
+          backHref="/projects"
+          stickyRotate={-2.4}
+          sheets={sheets}
+          pins={pins}
+          leadEyebrow="PROJECT · WRITE-UP"
+          firstSheetAsProseHeading
+          lead={(compact) => (
+            <>
+              <div style={{ margin: compact ? "10px 0 0" : "16px 0 0", fontFamily: "Excalifont, cursive", fontSize: compact ? 26 : 40, lineHeight: 1.14, color: "var(--cork-ink)" }}>
+                {meta.title}
+              </div>
+              <div style={{ margin: compact ? "12px 0 16px" : "16px 0 20px", fontFamily: MONO, fontSize: compact ? 13 : 13.5, lineHeight: 1.85, color: "var(--cork-ink2)" }}>
+                {meta.description}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: compact ? 10 : 14, marginBottom: compact ? 18 : 24, fontFamily: MONO, fontSize: 11, color: "var(--cork-ink3)", letterSpacing: "0.06em" }}>
+                {meta.tech.map((t) => (
+                  <span key={t}>[ {t} ]</span>
+                ))}
+              </div>
+              {(meta.githubUrl || meta.liveUrl) && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: compact ? 16 : 24, paddingTop: 14, borderTop: "1px solid var(--cork-rule)", fontFamily: MONO, fontSize: compact ? 11 : 12, letterSpacing: "0.1em", color: "var(--cork-ink)" }}>
+                  {meta.githubUrl && (
+                    <a href={meta.githubUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>VIEW ON GITHUB →</a>
+                  )}
+                  {meta.liveUrl && (
+                    <a href={meta.liveUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>LIVE SITE ↗</a>
+                  )}
+                </div>
+              )}
+            </>
           )}
-          {meta.liveUrl && (
-            <a
-              href={meta.liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 text-sm hover:opacity-80 transition-opacity"
-            >
-              <ExternalLink size={15} />
-              Live site
-            </a>
-          )}
-        </div>
-      </header>
-
-      <article className="prose prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-base prose-neutral dark:prose-invert max-w-none prose-a:text-blue-800 dark:prose-a:text-blue-500 prose-headings:font-semibold prose-headings:text-neutral-950 dark:prose-headings:text-neutral-100 prose-p:text-neutral-800 dark:prose-p:text-neutral-400 prose-li:text-neutral-800 dark:prose-p:text-neutral-400 prose-code:text-neutral-950 dark:prose-code:text-neutral-200 prose-pre:bg-[var(--chip)]">
-        <MDXRemote source={content} components={mdxComponents} />
-      </article>
+        />
+      </BoardStage>
     </main>
   )
 }

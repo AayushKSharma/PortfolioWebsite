@@ -18,20 +18,25 @@ export default function BoardStage({
   backLabel?: string;
 }) {
   return (
-    <div className="flex items-start justify-center gap-2 sm:gap-3 overflow-visible">
-      <div className="sticky top-8 z-10 flex w-12 shrink-0 justify-center pt-2">
-        {backHref ? (
-          <Link href={backHref} aria-label={backLabel} className="cork-stage-back">
-            ←
-          </Link>
-        ) : null}
+    <>
+      <div className="mb-3 flex items-center justify-end min-[701px]:hidden">
+        <ThemeToggle size="sm" />
       </div>
-      {/* Above the side columns so hanging flyers paint over the wall, not under it. */}
-      <div className="relative z-20 min-w-0 flex-1 overflow-visible">{children}</div>
-      <div className="sticky top-8 z-10 flex w-12 shrink-0 justify-center pt-2">
-        <ThemeToggle size="lg" />
+      <div className="flex items-start justify-center gap-2 sm:gap-3 overflow-visible">
+        <div className="sticky top-8 z-10 flex w-12 shrink-0 justify-center pt-2 max-[700px]:hidden">
+          {backHref ? (
+            <Link href={backHref} aria-label={backLabel} className="cork-stage-back">
+              ←
+            </Link>
+          ) : null}
+        </div>
+        {/* Above the side columns so hanging flyers paint over the wall, not under it. */}
+        <div className="relative z-20 min-w-0 flex-1 overflow-visible">{children}</div>
+        <div className="sticky top-8 z-10 flex w-12 shrink-0 justify-center pt-2 max-[700px]:hidden">
+          <ThemeToggle size="lg" />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

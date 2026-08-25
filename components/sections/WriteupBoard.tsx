@@ -131,7 +131,7 @@ function WriteupView({
             rotate={l.rotate}
             flow
             compact={compact}
-            eyebrow={i === 0 ? leadEyebrow : l.sheet.eyebrow}
+            eyebrow={i === 0 ? leadEyebrow : undefined}
             heading={i === 0 ? undefined : l.sheet.heading}
             page={i + 1}
             pages={laid.length}
